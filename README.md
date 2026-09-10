@@ -135,4 +135,4 @@ Changing these keys requires updating firmware, Unity, and any backend in betwee
 
 Built by the AquaTwin team as part of CATCH_VR Summer School 2026 (GIK Institute, Erasmus+ CBHE project).
 
-Contributors and their roles are preserved in the [commit history](../../commits/main).
+Contributors and their roles are preserved in the [commit history](../../commits/main) and [commit history](../../commits/unity_code).
