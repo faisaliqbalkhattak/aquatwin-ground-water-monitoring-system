@@ -5,7 +5,18 @@ from cloud_monitor.telemetry import Telemetry
 
 
 def sample(received_at: datetime) -> Telemetry:
-    return Telemetry("well01", 12.0, 300.0, 7.0, "digitaltwin/well01/sensors", received_at)
+    return Telemetry(
+        "WELL_WOKWI_01",
+        24.4539,
+        54.3773,
+        143.14,
+        356.86,
+        320.3,
+        "ONLINE",
+        1791700194,
+        "aquatwin/well/WELL_WOKWI_01/telemetry",
+        received_at,
+    )
 
 
 def test_no_message_is_stale() -> None:
@@ -38,4 +49,3 @@ def test_invalid_message_count_does_not_replace_last_good_data() -> None:
     assert snapshot.telemetry is telemetry
     assert snapshot.invalid_count == 1
     assert snapshot.message_count == 1
-

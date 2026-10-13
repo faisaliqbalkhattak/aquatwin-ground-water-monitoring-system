@@ -1,114 +1,44 @@
-# Cloud Setup — HiveMQ MQTT
+# AquaTwin Cloud Architecture
 
-AquaTwin uses **HiveMQ Cloud** as the MQTT broker to relay sensor data from the ESP32-S3 to the Unity digital twin.
-
-## Architecture
-
-```text
-ESP32-S3 (publisher)          HiveMQ Cloud              Unity (subscriber)
-  firmware/sketch.ino    →    MQTT Broker (TLS)    →    HiveMqttWellDataSource.cs
-       port 8883                    port 8884
-```
-
-The ESP32 publishes sensor JSON to a topic. Unity subscribes to the same topic over a secure WebSocket. The broker handles authentication and TLS for both sides.
-
-## HiveMQ Cloud Broker
-
-| Setting | Value |
-|---|---|
-| Host | `6a3cba0faab347c9a1a0c5afcfbd3ca3.s1.eu.hivemq.cloud` |
-| MQTT port (TLS) | `8883` (used by ESP32) |
-| WebSocket port (TLS) | `8884` (used by Unity) |
-| WebSocket path | `/mqtt` |
-| Full WSS endpoint | `wss://6a3cba0faab347c9a1a0c5afcfbd3ca3.s1.eu.hivemq.cloud:8884/mqtt` |
-| Topic | `digitaltwin/well01/sensors` |
-
-## Creating a HiveMQ Cloud Account
-
-1. Go to [cloud.hivemq.com](https://cloud.hivemq.com/) and sign up for a free cluster.
-2. Once the cluster is active, go to **Manage Cluster → Access Management**.
-3. Create an MQTT user (e.g. `well_dt_esp32`) with a strong password.
-4. Note the cluster ID shown in your dashboard — it becomes part of the host URL:
-   ```
-   <cluster-id>.s1.eu.hivemq.cloud
-   ```
-5. In the same Access Management panel, grant only the publish/subscribe topic permissions needed by AquaTwin.
-
-## ESP32 Firmware Configuration
-
-Copy `firmware/secrets.example.h` to the Git-ignored `firmware/secrets.h`, then set:
-
-```cpp
-#define AQUATWIN_WIFI_SSID "YOUR_WIFI_SSID"
-#define AQUATWIN_WIFI_PASSWORD "YOUR_WIFI_PASSWORD"
-#define AQUATWIN_MQTT_USERNAME "YOUR_MQTT_USERNAME"
-#define AQUATWIN_MQTT_PASSWORD "YOUR_MQTT_PASSWORD"
-```
-
-The firmware uses `WiFiClientSecure`, NTP clock synchronization, and the trusted
-ISRG Root X1 CA. Certificate and hostname verification remain enabled.
-
-### MQTT Payload
-
-Published every 2 seconds to `digitaltwin/well01/sensors`:
-
-```json
-{
-  "device": "well01",
-  "distance_cm": 12.40,
-  "tds_ppm": 342.50,
-  "ph": 7.63
-}
-```
-
-## Unity Subscriber Configuration
-
-In the Unity Editor:
-
-1. Select **AquaTwin → MQTT Connection Setup**.
-2. Set **Data Mode** to `LiveMqtt`.
-3. Enter the HiveMQ username and password.
-4. Click **Save Local Settings**.
-5. Enter Play Mode.
-
-Settings are saved to `UserSettings/AquaTwinMqttCredentials.json` (excluded from Git via `.gitignore`).
-
-### Verification
-
-With the ESP32 publishing and Unity in Play Mode, the Console should show:
+AquaTwin uses HiveMQ Cloud only as the secure telemetry broker. The Python
+backend is the sole downstream MQTT consumer; Unity consumes the Python REST or
+WebSocket API and never stores HiveMQ credentials.
 
 ```text
-[MQTT] Connecting...
-[MQTT] Connected
-[MQTT] Subscribed: digitaltwin/well01/sensors
-[MQTT] Message received
-distance_cm = ...
-tds_ppm = ...
-ph = ...
+ESP32/Wokwi nodes
+  -> MQTT TLS 8883
+  -> HiveMQ Cloud: aquatwin/well/{well_id}/telemetry
+  -> Python backend subscription: aquatwin/well/+/telemetry
+  -> SQLite + NumPy IDW
+  -> REST / WebSocket on port 8000
+  -> Unity and browser dashboard
 ```
 
-The connection indicator displays **LIVE** when data is flowing, **OFFLINE** if the connection drops or no valid message is received for 10 seconds.
+## HiveMQ access
 
-## Simulation Mode (No ESP32 Required)
+Create broker credentials under HiveMQ Cloud **Access Management**. Grant the
+ESP32/Wokwi credential publish permission for its well topics, and grant the
+backend credential subscribe permission for `aquatwin/well/+/telemetry`.
 
-To demo without hardware:
+Copy `.env.example` to `.env` and fill in the private values locally:
 
-1. Stop Play Mode.
-2. Open **AquaTwin → MQTT Connection Setup**.
-3. Select `Simulation`.
-4. Save and restart Play Mode.
+```dotenv
+MQTT_HOST=<cluster-id>.s1.eu.hivemq.cloud
+MQTT_PORT=8883
+MQTT_USERNAME=<private username>
+MQTT_PASSWORD=<private password>
+MQTT_TOPIC=aquatwin/well/+/telemetry
+```
 
-A prerecorded 46-second dataset feeds the same data pipeline.
+The backend uses the operating system CA store, requires a valid certificate,
+verifies the hostname, and enforces TLS 1.2 or newer.
 
-## Data Contract
+## Run
 
-Every layer of the project (firmware → broker → Unity) agrees on these keys:
+```bash
+source .venv/bin/activate
+python -m aquatwin_backend
+```
 
-| Key | Unit | Description |
-|---|---|---|
-| `device` | — | Device identifier (e.g. `well01`) |
-| `distance_cm` | cm | Distance from sensor to water surface |
-| `tds_ppm` | ppm | Total dissolved solids |
-| `ph` | — | pH estimate |
-
-Changing these keys requires updating the firmware, the Unity subscriber, and any backend in between.
+Open `http://127.0.0.1:8000`. See [`../CLOUD_SETUP.md`](../CLOUD_SETUP.md) for
+the continuous multi-well test and verification endpoints.

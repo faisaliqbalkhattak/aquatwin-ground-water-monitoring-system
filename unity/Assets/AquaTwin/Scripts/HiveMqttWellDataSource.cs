@@ -16,8 +16,23 @@ namespace AquaTwin
     public sealed class HiveMqttWellDataSource : MonoBehaviour
     {
         [Serializable]
+        private sealed class LocationJson
+        {
+            public float lat;
+            public float lng;
+        }
+
+        [Serializable]
         private sealed class WellTelemetryJson
         {
+            public string well_id;
+            public LocationJson location;
+            public float depth_to_water_cm;
+            public float water_column_height_cm;
+            public string status;
+            public long timestamp;
+
+            // Legacy fields stay readable while older devices migrate.
             public string device;
             public float distance_cm;
             public float tds_ppm;
@@ -350,30 +365,64 @@ namespace AquaTwin
             Debug.Log("[MQTT] Message received");
             try
             {
-                if (!ContainsRequiredFields(json))
-                    throw new FormatException("JSON is missing device, distance_cm, tds_ppm, or ph.");
-
                 WellTelemetryJson telemetry = JsonUtility.FromJson<WellTelemetryJson>(json);
-                if (telemetry == null || string.IsNullOrWhiteSpace(telemetry.device) ||
-                    !IsFinite(telemetry.distance_cm) || !IsFinite(telemetry.tds_ppm) ||
-                    !IsFinite(telemetry.ph))
-                {
-                    throw new FormatException("JSON contains invalid sensor values.");
-                }
+                if (telemetry == null)
+                    throw new FormatException("JSON could not be parsed.");
 
-                Debug.Log(string.Format(CultureInfo.InvariantCulture,
-                    "distance_cm = {0:F2}\ntds_ppm = {1:F2}\nph = {2:F2}",
-                    telemetry.distance_cm, telemetry.tds_ppm, telemetry.ph));
+                if (ContainsCurrentRequiredFields(json))
+                {
+                    if (string.IsNullOrWhiteSpace(telemetry.well_id) ||
+                        string.IsNullOrWhiteSpace(telemetry.status) || telemetry.location == null ||
+                        !IsFinite(telemetry.location.lat) || !IsFinite(telemetry.location.lng) ||
+                        telemetry.location.lat < -90f || telemetry.location.lat > 90f ||
+                        telemetry.location.lng < -180f || telemetry.location.lng > 180f ||
+                        !IsFinite(telemetry.depth_to_water_cm) ||
+                        !IsFinite(telemetry.water_column_height_cm) ||
+                        !IsFinite(telemetry.tds_ppm) || telemetry.depth_to_water_cm < 0f ||
+                        telemetry.water_column_height_cm < 0f || telemetry.tds_ppm < 0f ||
+                        telemetry.timestamp < 0)
+                    {
+                        throw new FormatException("JSON contains invalid well telemetry values.");
+                    }
+
+                    Debug.Log(string.Format(CultureInfo.InvariantCulture,
+                        "well_id = {0}\nlocation = {1:F6},{2:F6}\n" +
+                        "depth_to_water_cm = {3:F2}\nwater_column_height_cm = {4:F2}\n" +
+                        "tds_ppm = {5:F1}\nstatus = {6}\ntimestamp = {7}",
+                        telemetry.well_id, telemetry.location.lat, telemetry.location.lng,
+                        telemetry.depth_to_water_cm, telemetry.water_column_height_cm,
+                        telemetry.tds_ppm, telemetry.status, telemetry.timestamp));
+
+                    if (settings.applyToDigitalTwin && wellVisualizer != null)
+                    {
+                        wellVisualizer.SetLiveWellData(telemetry.depth_to_water_cm,
+                            telemetry.water_column_height_cm, telemetry.tds_ppm);
+                    }
+                }
+                else if (ContainsLegacyRequiredFields(json))
+                {
+                    if (string.IsNullOrWhiteSpace(telemetry.device) ||
+                        !IsFinite(telemetry.distance_cm) || !IsFinite(telemetry.tds_ppm) ||
+                        !IsFinite(telemetry.ph))
+                    {
+                        throw new FormatException("Legacy JSON contains invalid sensor values.");
+                    }
+
+                    Debug.LogWarning("[MQTT] Legacy payload received; update its firmware schema.");
+                    if (settings.applyToDigitalTwin && wellVisualizer != null)
+                    {
+                        wellVisualizer.SetLiveSensorData(
+                            telemetry.distance_cm, telemetry.tds_ppm, telemetry.ph);
+                    }
+                }
+                else
+                {
+                    throw new FormatException("JSON is missing required AquaTwin fields.");
+                }
 
                 lastValidMessageTime = Time.unscaledTime;
                 hasReceivedMessage = true;
                 SetConnectionStatus("LIVE", LiveColor);
-
-                if (settings.applyToDigitalTwin && wellVisualizer != null)
-                {
-                    wellVisualizer.SetLiveSensorData(
-                        telemetry.distance_cm, telemetry.tds_ppm, telemetry.ph);
-                }
             }
             catch (Exception exception)
             {
@@ -381,7 +430,21 @@ namespace AquaTwin
             }
         }
 
-        private static bool ContainsRequiredFields(string json)
+        private static bool ContainsCurrentRequiredFields(string json)
+        {
+            return !string.IsNullOrWhiteSpace(json) &&
+                json.Contains("\"well_id\"") &&
+                json.Contains("\"location\"") &&
+                json.Contains("\"lat\"") &&
+                json.Contains("\"lng\"") &&
+                json.Contains("\"depth_to_water_cm\"") &&
+                json.Contains("\"water_column_height_cm\"") &&
+                json.Contains("\"tds_ppm\"") &&
+                json.Contains("\"status\"") &&
+                json.Contains("\"timestamp\"");
+        }
+
+        private static bool ContainsLegacyRequiredFields(string json)
         {
             return !string.IsNullOrWhiteSpace(json) &&
                 json.Contains("\"device\"") &&

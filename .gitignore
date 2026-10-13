@@ -5,10 +5,13 @@ __pycache__/
 .pytest_cache/
 .coverage
 htmlcov/
+data/
+*.db
+*.db-shm
+*.db-wal
 
 # Local firmware credentials (copy from secrets.example.h)
 firmware/secrets.h
 
 # Unity stores local credentials here.
 unity/UserSettings/
-

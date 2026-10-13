@@ -23,6 +23,10 @@ This project aligns with UN SDG 6 (Clean Water and Sanitation)—focusing on Tar
 │   └── README.md
 ├── cloud/                   # MQTT broker setup
 │   └── README.md
+├── aquatwin_backend/        # Aggregation, validation, SQLite, and NumPy IDW
+├── examples/                # Clearly labelled simulated multi-well input
+├── generate_spatial_grid.py # Unity-ready depth/TDS JSON generator
+├── SPATIAL_MAPPING.md       # IDW method, units, commands, and hand-off format
 ├── unity/                   # Unity digital twin project
 │   ├── Assets/              # Scripts, materials, prefabs, scenes
 │   ├── Packages/
@@ -55,7 +59,11 @@ ESP32-S3 sensors
         ↓
 HiveMQ Cloud (MQTT TLS, port 8883)
         ↓
-Unity Digital Twin (subscribes via WSS, port 8884)
+Python backend (validation → SQLite → NumPy IDW)
+        ↓
+REST / WebSocket API (port 8000)
+        ↓
+Unity Digital Twin / live browser dashboard
         ↓
 3D visualization: water level, TDS colour, pH, dashboard
 ```
@@ -108,22 +116,43 @@ For the independent Python diagnostic monitor, see [`CLOUD_SETUP.md`](CLOUD_SETU
 
 See [`unity/README.md`](unity/README.md).
 
-1. Open the `unity/` folder as a project in Unity Hub (Unity 6000.3.2f1+).
-2. Select **AquaTwin → MQTT Connection Setup** → set to `LiveMqtt` → enter credentials → Save.
-3. Enter Play Mode — the 3D well responds to live sensor data.
+1. Start the Python backend described below.
+2. Open the `unity/` folder in Unity Hub (Unity 6000.3.2f1+).
+3. The Unity developer consumes `/api/wells/live` and `/ws/terrain-matrix`;
+   Unity must not connect directly to HiveMQ.
+
+### Multi-Well IDW Grid
+
+See [`SPATIAL_MAPPING.md`](SPATIAL_MAPPING.md) for the tested multi-well
+aggregation and NumPy IDW workflow. It produces separate flat row-major depth
+and TDS arrays for Unity, plus an optional local SVG surface preview.
+
+For live operation:
+
+```bash
+source .venv/bin/activate
+python -m aquatwin_backend
+```
+
+Open `http://127.0.0.1:8000` for the event-driven live map. For a continuous
+five-well test, run `python mock_publisher.py --count 0 --wells 5 --interval 3`
+in another terminal.
 
 ---
 
 ## Data Contract
 
-Every layer (firmware → broker → Unity) agrees on these keys:
+Firmware and the Python ingestion layer agree on these MQTT keys:
 
 | Key | Unit | Description |
 |---|---|---|
-| `device` | — | Device identifier (e.g. `well01`) |
-| `distance_cm` | cm | Distance from sensor to water surface |
+| `well_id` | — | Well identifier (`WELL_WOKWI_01`) |
+| `location.lat`, `location.lng` | degrees | Well coordinates |
+| `depth_to_water_cm` | cm | Sensor-to-water distance |
+| `water_column_height_cm` | cm | Water column height |
 | `tds_ppm` | ppm | Total dissolved solids |
-| `ph` | — | pH estimate |
+| `status` | — | Device state, such as `ONLINE` |
+| `timestamp` | Unix seconds | Device publication time |
 
 Changing these keys requires updating firmware, Unity, and any backend in between.
 

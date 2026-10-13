@@ -62,38 +62,38 @@ UserSettings/AquaTwinMqttCredentials.json
 
 ## Incoming Data Format
 
-Unity expects JSON on `digitaltwin/well01/sensors` containing all four fields:
+Unity expects the agreed well JSON on `digitaltwin/well01/sensors`:
 
 ```json
 {
-  "device": "well01",
-  "distance_cm": 12.40,
-  "tds_ppm": 342.50,
-  "ph": 7.63
+  "well_id": "WELL_WOKWI_01",
+  "location": {"lat": 24.453900, "lng": 54.377300},
+  "depth_to_water_cm": 143.14,
+  "water_column_height_cm": 356.86,
+  "tds_ppm": 320.3,
+  "status": "ONLINE",
+  "timestamp": 1791700194
 }
 ```
 
-`distance_cm` is the ultrasonic distance from the sensor at the bottle top to the water surface. It is not sent as water-level percentage.
+`depth_to_water_cm` is the ultrasonic distance from the sensor to the water.
+Unity derives total depth from `depth_to_water_cm + water_column_height_cm`.
 
 ## Water-Level Calibration
 
-The physical demonstration bottle is calibrated as **20 cm from the sensor to the bottom**. `WellVisualizer` owns the conversion:
+For live well telemetry, `WellVisualizer` owns the conversion:
 
 ```text
-water level (%) = (1 − distance_cm / 20) × 100
+water level (%) = water_column_height_cm /
+                  (depth_to_water_cm + water_column_height_cm) × 100
 ```
 
 Examples:
 
-| Sensor distance | Displayed water level |
-|---:|---:|
-| 20 cm | 0% |
-| 15 cm | 25% |
-| 10 cm | 50% |
-| 5 cm | 75% |
-| 0 cm | 100% |
+The legacy 20 cm calibration remains available only for older payloads during migration.
 
-The result is clamped to the visual range of 0–100%. TDS controls the water colour, while pH and TDS update the existing dashboard values and status indicators.
+The result is clamped to 0–100%. TDS controls the water colour. Since the new
+contract has no pH field, the current visual pH value is left unchanged.
 
 ## Verification
 
@@ -105,9 +105,10 @@ With the ESP32 publishing and Unity in Play Mode, the Console should show:
 [MQTT] Subscribed:
 digitaltwin/well01/sensors
 [MQTT] Message received
-distance_cm = ...
+depth_to_water_cm = ...
+water_column_height_cm = ...
 tds_ppm = ...
-ph = ...
+status = ONLINE
 ```
 
 After a valid message, the existing connection indicator displays **LIVE**. It displays **OFFLINE** if the connection closes or no valid message is received for 10 seconds. Connection, authentication, malformed JSON, and missing-field errors are logged without stopping the Digital Twin. A dropped WSS connection is retried every 5 seconds until Play Mode stops.

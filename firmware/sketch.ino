@@ -25,8 +25,14 @@ const int MQTT_PORT = 8883;
 const char* MQTT_USERNAME = AQUATWIN_MQTT_USERNAME;
 const char* MQTT_PASSWORD = AQUATWIN_MQTT_PASSWORD;
 
-// MQTT topic
-const char* MQTT_SENSOR_TOPIC = "digitaltwin/well01/sensors";
+// Well metadata agreed for the Wokwi/cloud payload contract.
+const char* WELL_ID = "WELL_WOKWI_01";
+const float WELL_LATITUDE = 24.453900;
+const float WELL_LONGITUDE = 54.377300;
+const float WELL_TOTAL_DEPTH_CM = 500.0;
+
+// Built from WELL_ID in setup to guarantee topic/payload identity consistency.
+char MQTT_SENSOR_TOPIC[96];
 
 // ============================================================
 // MQTT CLIENT
@@ -64,6 +70,11 @@ const float TDS_CALIBRATION_FACTOR = 606.06;
 float previous_depth_cm = -1.0;
 unsigned long previous_time_ms = 0;
 
+const size_t DISTANCE_FILTER_SIZE = 5;
+float distance_samples[DISTANCE_FILTER_SIZE] = {0};
+size_t distance_sample_count = 0;
+size_t distance_sample_index = 0;
+
 // ============================================================
 // pH STATE
 // ============================================================
@@ -77,7 +88,7 @@ float current_ph = 7.0;
 // MQTT PUBLISH INTERVAL
 // ============================================================
 
-const unsigned long MQTT_PUBLISH_INTERVAL = 2000;
+const unsigned long MQTT_PUBLISH_INTERVAL = 3000;
 
 unsigned long lastPublishTime = 0;
 
@@ -105,6 +116,25 @@ float readDistanceCm() {
 
   // Calculate distance
   return duration * 0.0343 / 2.0;
+}
+
+float filterDistanceCm(float sample) {
+
+  distance_samples[distance_sample_index] = sample;
+  distance_sample_index =
+    (distance_sample_index + 1) % DISTANCE_FILTER_SIZE;
+
+  if (distance_sample_count < DISTANCE_FILTER_SIZE) {
+    distance_sample_count++;
+  }
+
+  float sum = 0.0;
+
+  for (size_t i = 0; i < distance_sample_count; i++) {
+    sum += distance_samples[i];
+  }
+
+  return sum / distance_sample_count;
 }
 
 // ============================================================
@@ -256,29 +286,45 @@ void connectMQTT() {
 // ============================================================
 
 void publishSensorData(
-  float distance_cm,
-  float tds_ppm,
-  float ph
+  float depth_to_water_cm,
+  float tds_ppm
 ) {
 
   // ----------------------------------------------------------
   // JSON PAYLOAD
   // ----------------------------------------------------------
 
-  char payload[256];
+  float water_column_height_cm =
+    WELL_TOTAL_DEPTH_CM - depth_to_water_cm;
+
+  if (water_column_height_cm < 0.0) {
+    water_column_height_cm = 0.0;
+  }
+
+  unsigned long timestamp =
+    (unsigned long)time(nullptr);
+
+  char payload[320];
 
   snprintf(
     payload,
     sizeof(payload),
 
-    "{\"device\":\"well01\","
-    "\"distance_cm\":%.2f,"
-    "\"tds_ppm\":%.2f,"
-    "\"ph\":%.2f}",
+    "{\"well_id\":\"%s\","
+    "\"location\":{\"lat\":%.6f,\"lng\":%.6f},"
+    "\"depth_to_water_cm\":%.2f,"
+    "\"water_column_height_cm\":%.2f,"
+    "\"tds_ppm\":%.1f,"
+    "\"status\":\"ONLINE\","
+    "\"timestamp\":%lu}",
 
-    distance_cm,
+    WELL_ID,
+    WELL_LATITUDE,
+    WELL_LONGITUDE,
+    depth_to_water_cm,
+    water_column_height_cm,
     tds_ppm,
-    ph
+    timestamp
   );
 
   // ----------------------------------------------------------
@@ -336,6 +382,13 @@ void setup() {
 
   Serial.println();
   Serial.println("=========================================");
+
+  snprintf(
+    MQTT_SENSOR_TOPIC,
+    sizeof(MQTT_SENSOR_TOPIC),
+    "aquatwin/well/%s/telemetry",
+    WELL_ID
+  );
   Serial.println("ESP32-S3 AquaTwin Telemetry Node Started!");
   Serial.println("=========================================");
 
@@ -445,8 +498,11 @@ void loop() {
       );
     }
 
+    // Smooth ultrasonic noise with the required 5-sample moving average.
+    depth_cm = filterDistanceCm(depth_cm);
+
     // --------------------------------------------------------
-    // SAVE VALID DEPTH
+    // SAVE FILTERED DEPTH
     // --------------------------------------------------------
 
     previous_depth_cm =
@@ -490,8 +546,7 @@ void loop() {
 
     publishSensorData(
       depth_cm,
-      tds_ppm,
-      ph
+      tds_ppm
     );
 
     Serial.println("-----------------------------------------");

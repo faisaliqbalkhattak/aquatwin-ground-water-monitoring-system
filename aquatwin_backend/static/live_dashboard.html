@@ -1,0 +1,137 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>AquaTwin Live IDW Monitor</title>
+  <style>
+    :root { color-scheme: dark; --bg:#07111f; --panel:#0d1b2a; --line:#20384c;
+      --text:#e8f1f8; --muted:#91a8b9; --cyan:#64d2ff; --yellow:#fff176; }
+    * { box-sizing:border-box; }
+    body { margin:0; background:var(--bg); color:var(--text); font:14px/1.45 Inter,system-ui,sans-serif; }
+    header { display:flex; justify-content:space-between; align-items:center; padding:22px 30px;
+      border-bottom:1px solid var(--line); background:rgba(7,17,31,.94); position:sticky; top:0; z-index:4; }
+    h1 { margin:0; font-size:25px; letter-spacing:.2px; } .accent { color:var(--cyan); }
+    #connection { padding:7px 12px; border:1px solid #844; border-radius:20px; color:#ff9b9b; }
+    #connection.live { border-color:#23845d; color:#67e5ad; }
+    main { max-width:1540px; margin:auto; padding:24px; }
+    .cards { display:grid; grid-template-columns:repeat(5,minmax(130px,1fr)); gap:12px; margin-bottom:16px; }
+    .card,.panel { background:var(--panel); border:1px solid var(--line); border-radius:12px;
+      box-shadow:0 10px 30px rgba(0,0,0,.16); }
+    .card { padding:15px 17px; } .label { color:var(--muted); font-size:12px; text-transform:uppercase; letter-spacing:.8px; }
+    .value { margin-top:4px; font-size:22px; font-weight:700; }
+    .visuals { display:grid; grid-template-columns:1.25fr 1fr; gap:16px; }
+    .panel { padding:16px; min-width:0; } .panel h2 { margin:0 0 10px; font-size:16px; font-weight:650; }
+    canvas { width:100%; height:520px; display:block; border-radius:8px; background:#091725; }
+    .legend { height:12px; margin:13px 5px 3px; border-radius:8px;
+      background:linear-gradient(90deg,#3634a5,#288eea,#1ed1c2,#62ee62,#e8f52e,#ff9c27,#a00b02); }
+    .legend-labels { display:flex; justify-content:space-between; color:var(--muted); font-size:11px; }
+    .table-panel { margin-top:16px; overflow:auto; } table { width:100%; border-collapse:collapse; }
+    th,td { text-align:left; padding:11px 13px; border-bottom:1px solid var(--line); white-space:nowrap; }
+    th { color:var(--muted); font-size:11px; text-transform:uppercase; letter-spacing:.6px; }
+    .online { color:#67e5ad; } .stale { color:#ffbf69; }
+    .notice { margin-top:16px; padding:13px 16px; color:#ffcc80; border:1px solid #6b572a;
+      border-radius:9px; background:#1a1a13; }
+    @media(max-width:950px){ .cards{grid-template-columns:repeat(2,1fr)} .visuals{grid-template-columns:1fr}
+      canvas{height:390px} header{padding:16px} main{padding:14px} }
+  </style>
+</head>
+<body>
+  <header>
+    <div><h1>AquaTwin <span class="accent">Live Multi-Well IDW</span></h1>
+      <div class="label">HiveMQ → Python aggregation → NumPy IDW → WebSocket</div></div>
+    <div id="connection">CONNECTING</div>
+  </header>
+  <main>
+    <section class="cards">
+      <div class="card"><div class="label">Wells</div><div class="value" id="wellCount">0</div></div>
+      <div class="card"><div class="label">Grid</div><div class="value" id="gridSize">48 × 48</div></div>
+      <div class="card"><div class="label">Depth range</div><div class="value" id="depthRange">—</div></div>
+      <div class="card"><div class="label">TDS range</div><div class="value" id="tdsRange">—</div></div>
+      <div class="card"><div class="label">Updates</div><div class="value" id="sequence">0</div></div>
+    </section>
+    <section class="visuals">
+      <article class="panel"><h2>Dynamic 3D depth surface</h2><canvas id="surface"></canvas></article>
+      <article class="panel"><h2>TDS spatial grid and live wells</h2><canvas id="map"></canvas>
+        <div class="legend"></div><div class="legend-labels"><span>Lower TDS</span><span>Higher TDS</span></div></article>
+    </section>
+    <section class="panel table-panel"><table><thead><tr><th>Well</th><th>Latitude</th><th>Longitude</th>
+      <th>Depth</th><th>Water column</th><th>TDS</th><th>Status</th><th>Timestamp</th></tr></thead>
+      <tbody id="wellRows"><tr><td colspan="8">Waiting for valid telemetry…</td></tr></tbody></table></section>
+    <div class="notice">Scientific caution: this surface is depth below each local wellhead, not surveyed groundwater elevation or hydraulic head.</div>
+  </main>
+<script>
+  const state = { document:null, reconnectDelay:1000 };
+  const byId = id => document.getElementById(id);
+  function setupCanvas(canvas) {
+    const ratio = window.devicePixelRatio || 1, rect = canvas.getBoundingClientRect();
+    canvas.width = Math.max(1, Math.floor(rect.width * ratio));
+    canvas.height = Math.max(1, Math.floor(rect.height * ratio));
+    const context = canvas.getContext('2d'); context.setTransform(ratio,0,0,ratio,0,0);
+    return {context, width:rect.width, height:rect.height};
+  }
+  function colour(value, minimum, maximum, alpha=1) {
+    const t = Math.max(0,Math.min(1,(value-minimum)/Math.max(maximum-minimum,1e-9)));
+    const hue = 245 - 245*t; return `hsla(${hue},88%,55%,${alpha})`;
+  }
+  function range(values) { return [Math.min(...values),Math.max(...values)]; }
+  function drawSurface(doc) {
+    const canvas=byId('surface'), {context:ctx,width:w,height:h}=setupCanvas(canvas), g=doc.grid;
+    ctx.clearRect(0,0,w,h); if(!doc.ready) return waiting(ctx,w,h);
+    const depth=g.depth_to_water_cm, tds=g.tds_ppm, rows=g.rows, cols=g.columns;
+    const [dmin,dmax]=range(depth), [tmin,tmax]=range(tds);
+    const point=(r,c)=>{ const dn=(depth[r*cols+c]-dmin)/Math.max(dmax-dmin,1e-9);
+      return [w*.5+(c/(cols-1)-r/(rows-1))*w*.32,
+        h*.66+(c/(cols-1)+r/(rows-1)-1)*h*.20-(1-dn)*h*.27]; };
+    for(let r=rows-2;r>=0;r--) for(let c=0;c<cols-1;c++) {
+      const corners=[point(r,c),point(r,c+1),point(r+1,c+1),point(r+1,c)];
+      const ids=[r*cols+c,r*cols+c+1,(r+1)*cols+c+1,(r+1)*cols+c];
+      ctx.beginPath(); ctx.moveTo(...corners[0]); corners.slice(1).forEach(p=>ctx.lineTo(...p)); ctx.closePath();
+      ctx.fillStyle=colour(ids.reduce((s,i)=>s+tds[i],0)/4,tmin,tmax,.94); ctx.fill();
+      ctx.strokeStyle='rgba(15,39,58,.52)'; ctx.lineWidth=.45; ctx.stroke();
+    }
+    ctx.fillStyle='#91a8b9'; ctx.font='12px system-ui'; ctx.fillText('Vertical shape = -depth below local wellhead',16,h-18);
+  }
+  function drawMap(doc) {
+    const canvas=byId('map'), {context:ctx,width:w,height:h}=setupCanvas(canvas), g=doc.grid;
+    ctx.clearRect(0,0,w,h); if(!doc.ready) return waiting(ctx,w,h);
+    const values=g.tds_ppm, rows=g.rows, cols=g.columns, [vmin,vmax]=range(values), pad=28;
+    const cw=(w-2*pad)/cols, ch=(h-2*pad)/rows;
+    for(let r=0;r<rows;r++) for(let c=0;c<cols;c++) { ctx.fillStyle=colour(values[r*cols+c],vmin,vmax);
+      ctx.fillRect(pad+c*cw,pad+(rows-1-r)*ch,cw+1,ch+1); }
+    ctx.strokeStyle='rgba(255,255,255,.22)'; ctx.strokeRect(pad,pad,w-2*pad,h-2*pad);
+    const lat=g.latitude_axis, lng=g.longitude_axis, latMin=lat[0], latMax=lat.at(-1), lngMin=lng[0], lngMax=lng.at(-1);
+    ctx.font='bold 11px system-ui';
+    doc.source.wells.forEach(well=>{ const x=pad+(well.location.lng-lngMin)/(lngMax-lngMin)*(w-2*pad);
+      const y=pad+(1-(well.location.lat-latMin)/(latMax-latMin))*(h-2*pad);
+      ctx.beginPath();ctx.arc(x,y,6,0,Math.PI*2);ctx.fillStyle='#fff';ctx.fill();ctx.strokeStyle='#07111f';ctx.lineWidth=2;ctx.stroke();
+      ctx.fillStyle='#fff';ctx.fillText(well.well_id.replace('WELL_MOCK_','W').replace('WELL_SIM_','W'),x+9,y-8); });
+  }
+  function waiting(ctx,w,h){ ctx.fillStyle='#91a8b9';ctx.font='16px system-ui';ctx.textAlign='center';
+    ctx.fillText('Waiting for valid multi-well telemetry…',w/2,h/2);ctx.textAlign='left'; }
+  function updateTable(wells){ const body=byId('wellRows');body.replaceChildren();
+    if(!wells.length){const row=body.insertRow();const cell=row.insertCell();cell.colSpan=8;cell.textContent='Waiting for valid telemetry…';return;}
+    wells.forEach(w=>{const row=body.insertRow();[w.well_id,w.location.lat.toFixed(6),w.location.lng.toFixed(6),
+      `${w.depth_to_water_cm.toFixed(2)} cm`,`${w.water_column_height_cm.toFixed(2)} cm`,`${w.tds_ppm.toFixed(1)} ppm`,
+      w.status,new Date(w.timestamp*1000).toLocaleTimeString()].forEach((value,index)=>{const cell=row.insertCell();cell.textContent=value;
+        if(index===6)cell.className=w.status==='ONLINE'?'online':'stale';});}); }
+  function render(doc){state.document=doc;const g=doc.grid, depths=g.depth_to_water_cm,tds=g.tds_ppm,badge=byId('connection');
+    if(doc.ready&&!doc.stream.is_stale){badge.textContent='TELEMETRY LIVE';badge.classList.add('live');}
+    else if(doc.ready){badge.textContent=`TELEMETRY STALE · ${doc.stream.age_seconds.toFixed(0)}s`;badge.classList.remove('live');}
+    else{badge.textContent='WAITING FOR TELEMETRY';badge.classList.remove('live');}
+    byId('wellCount').textContent=doc.source.latest_well_count;byId('gridSize').textContent=`${g.rows} × ${g.columns}`;
+    byId('sequence').textContent=doc.update_sequence;
+    byId('depthRange').textContent=depths.length?`${Math.min(...depths).toFixed(1)}–${Math.max(...depths).toFixed(1)} cm`:'—';
+    byId('tdsRange').textContent=tds.length?`${Math.min(...tds).toFixed(0)}–${Math.max(...tds).toFixed(0)} ppm`:'—';
+    drawSurface(doc);drawMap(doc);updateTable(doc.source.wells); }
+  function connect(){const badge=byId('connection'),scheme=location.protocol==='https:'?'wss':'ws';
+    const socket=new WebSocket(`${scheme}://${location.host}/ws/terrain-matrix`);
+    socket.onopen=()=>{badge.textContent='WEBSOCKET CONNECTED';badge.classList.add('live');state.reconnectDelay=1000;};
+    socket.onmessage=event=>render(JSON.parse(event.data));
+    socket.onclose=()=>{badge.textContent='RECONNECTING';badge.classList.remove('live');
+      setTimeout(connect,state.reconnectDelay);state.reconnectDelay=Math.min(10000,state.reconnectDelay*1.7);};
+    socket.onerror=()=>socket.close(); }
+  addEventListener('resize',()=>state.document&&render(state.document));connect();
+</script>
+</body>
+</html>

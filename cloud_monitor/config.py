@@ -11,7 +11,7 @@ import uuid
 from dotenv import load_dotenv
 
 
-DEFAULT_TOPIC = "digitaltwin/well01/sensors"
+DEFAULT_TOPIC = "aquatwin/well/+/telemetry"
 
 
 class ConfigurationError(ValueError):
@@ -19,7 +19,7 @@ class ConfigurationError(ValueError):
 
 
 def validate_topic(topic: str) -> str:
-    """Validate the concrete topic used by the firmware (not a wildcard filter)."""
+    """Validate a concrete frozen-contract publish topic."""
     if not isinstance(topic, str) or not topic.strip():
         raise ConfigurationError("MQTT topic cannot be empty.")
     topic = topic.strip()
@@ -27,7 +27,20 @@ def validate_topic(topic: str) -> str:
         raise ConfigurationError("MQTT topic must be concrete and cannot contain NUL, +, or #.")
     if len(topic.encode("utf-8")) > 65_535:
         raise ConfigurationError("MQTT topic is too long.")
+    parts = topic.split("/")
+    if len(parts) != 4 or parts[0] != "aquatwin" or parts[1] != "well" or \
+            not parts[2] or parts[3] != "telemetry":
+        raise ConfigurationError(
+            "MQTT topic must match aquatwin/well/{well_id}/telemetry."
+        )
     return topic
+
+
+def validate_topic_filter(topic_filter: str) -> str:
+    """Accept only the frozen multi-well subscription filter or one concrete topic."""
+    if topic_filter == DEFAULT_TOPIC:
+        return topic_filter
+    return validate_topic(topic_filter)
 
 
 def create_tls_context() -> ssl.SSLContext:
@@ -88,6 +101,5 @@ class MqttSettings:
         if stale_timeout <= 0:
             raise ConfigurationError("MQTT_STALE_TIMEOUT must be greater than zero.")
 
-        topic = validate_topic(topic_override or os.getenv("MQTT_TOPIC", DEFAULT_TOPIC))
+        topic = validate_topic_filter(topic_override or os.getenv("MQTT_TOPIC", DEFAULT_TOPIC))
         return cls(host, port, username, password, topic, stale_timeout)
-

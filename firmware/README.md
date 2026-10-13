@@ -28,14 +28,18 @@ fall back to an insecure connection when time synchronization fails.
 **Payload format:**
 ```json
 {
-  "device": "well01",
-  "distance_cm": 184.32,
-  "tds_ppm": 410.50,
-  "ph": 7.15
+  "well_id": "WELL_WOKWI_01",
+  "location": {"lat": 24.453900, "lng": 54.377300},
+  "depth_to_water_cm": 143.14,
+  "water_column_height_cm": 356.86,
+  "tds_ppm": 320.3,
+  "status": "ONLINE",
+  "timestamp": 1791700194
 }
 ```
 
-Publishes every 2 seconds.
+Publishes every 2 seconds. The Wokwi well is configured as 500 cm total depth,
+so `water_column_height_cm = 500 - depth_to_water_cm` (clamped at zero).
 
 ---
 

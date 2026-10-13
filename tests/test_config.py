@@ -2,16 +2,31 @@ import ssl
 
 import pytest
 
-from cloud_monitor.config import ConfigurationError, create_tls_context, unique_client_id, validate_topic
+from cloud_monitor.config import (
+    DEFAULT_TOPIC,
+    ConfigurationError,
+    create_tls_context,
+    unique_client_id,
+    validate_topic,
+    validate_topic_filter,
+)
 from cloud_monitor.config import MqttSettings
 from cloud_monitor.client import AquaTwinMonitor
 
 
 def test_actual_topic_is_valid() -> None:
-    assert validate_topic("digitaltwin/well01/sensors") == "digitaltwin/well01/sensors"
+    topic = "aquatwin/well/WELL_WOKWI_01/telemetry"
+    assert validate_topic(topic) == topic
 
 
-@pytest.mark.parametrize("topic", ["", "sensors/+", "sensors/#", "bad\x00topic"])
+def test_frozen_subscription_filter_is_valid() -> None:
+    assert validate_topic_filter(DEFAULT_TOPIC) == "aquatwin/well/+/telemetry"
+
+
+@pytest.mark.parametrize(
+    "topic",
+    ["", "sensors/+", "sensors/#", "bad\x00topic", "digitaltwin/well01/sensors"],
+)
 def test_invalid_topics_are_rejected(topic: str) -> None:
     with pytest.raises(ConfigurationError):
         validate_topic(topic)

@@ -4,62 +4,65 @@ from __future__ import annotations
 
 import argparse
 import json
-import os
 from threading import Event
 import time
 
 import paho.mqtt.client as mqtt
-from dotenv import load_dotenv
 
 from cloud_monitor.config import (
     ConfigurationError,
     MqttSettings,
     create_tls_context,
     unique_client_id,
-    validate_topic,
 )
 
 
-def mock_payload(sequence: int) -> dict[str, object]:
-    """Match the firmware fields while making simulation unmistakable."""
+MOCK_WELLS = (
+    ("WELL_MOCK_01", 24.453900, 54.377300, 143.14),
+    ("WELL_MOCK_02", 24.458200, 54.381100, 166.20),
+    ("WELL_MOCK_03", 24.449500, 54.371800, 121.75),
+    ("WELL_MOCK_04", 24.462400, 54.369900, 188.40),
+    ("WELL_MOCK_05", 24.446100, 54.386000, 154.60),
+    ("WELL_MOCK_06", 24.470100, 54.390200, 201.30),
+    ("WELL_MOCK_07", 24.440800, 54.362500, 134.90),
+    ("WELL_MOCK_08", 24.474500, 54.375700, 176.80),
+)
+
+
+def mock_payload(sequence: int, well_index: int = 0) -> dict[str, object]:
+    """Generate one exact-schema packet for a deterministic mock well."""
+    well_id, latitude, longitude, baseline_depth = MOCK_WELLS[well_index]
+    depth = round(baseline_depth + (sequence % 6) * 0.25, 2)
     return {
-        "device": "MOCK-well01",
-        "distance_cm": round(10.0 + (sequence % 6) * 0.25, 2),
-        "tds_ppm": round(300.0 + (sequence % 5) * 2.5, 2),
-        "ph": round(7.0 + (sequence % 3) * 0.05, 2),
-        "mock": True,
+        "well_id": well_id,
+        "location": {"lat": latitude, "lng": longitude},
+        "depth_to_water_cm": depth,
+        "water_column_height_cm": round(500.0 - depth, 2),
+        "tds_ppm": round(320.3 + (sequence % 5) * 0.5, 1),
+        "status": "ONLINE",
+        "timestamp": int(time.time()),
     }
 
 
 def main() -> int:
     parser = argparse.ArgumentParser(description="Explicit AquaTwin MOCK MQTT publisher")
     parser.add_argument("--env-file", default=".env")
-    parser.add_argument("--topic", help="test topic; defaults to MQTT_TEST_TOPIC")
-    parser.add_argument("--count", type=int, default=1, help="messages to send (default: 1)")
-    parser.add_argument("--interval", type=float, default=2.0, help="seconds between messages")
     parser.add_argument(
-        "--allow-live-topic",
-        action="store_true",
-        help="required if intentionally publishing MOCK data to the physical-device topic",
+        "--count",
+        type=int,
+        default=1,
+        help="publish cycles; 0 runs continuously until Ctrl+C (default: 1)",
     )
+    parser.add_argument("--wells", type=int, default=5, help="mock wells, 1-8 (default: 5)")
+    parser.add_argument("--interval", type=float, default=3.0, help="seconds between cycles")
     args = parser.parse_args()
-    if args.count < 1 or args.interval < 0:
-        parser.error("--count must be at least 1 and --interval cannot be negative")
+    if args.count < 0 or args.interval < 0 or not 1 <= args.wells <= len(MOCK_WELLS):
+        parser.error("--count must be >= 0, --wells 1-8, and --interval >= 0")
 
-    load_dotenv(args.env_file, override=False)
     try:
         settings = MqttSettings.from_env(args.env_file)
-        test_topic = validate_topic(
-            args.topic or os.getenv("MQTT_TEST_TOPIC", settings.topic + "/mock")
-        )
     except ConfigurationError as exc:
         print(f"Configuration error: {exc}")
-        return 2
-    if test_topic == settings.topic and not args.allow_live_topic:
-        print(
-            "Safety stop: mock topic equals the live firmware topic. "
-            "Use MQTT_TEST_TOPIC or explicitly pass --allow-live-topic."
-        )
         return 2
 
     connected = Event()
@@ -91,16 +94,21 @@ def main() -> int:
             print(f"[MOCK] Broker rejected connection: {failed[0]}; no data was published.")
             return 1
 
-        print(f"[MOCK] Connected. Test topic: {test_topic}")
-        for sequence in range(args.count):
-            payload = json.dumps(mock_payload(sequence), separators=(",", ":"))
-            info = client.publish(test_topic, payload, qos=0, retain=False)
-            info.wait_for_publish(timeout=10)
-            if not info.is_published():
-                print("[MOCK] Publish confirmation timed out.")
-                return 1
-            print(f"[MOCK] Published {sequence + 1}/{args.count}: {payload}")
-            if sequence + 1 < args.count:
+        print(f"[MOCK] Connected. Publishing {args.wells} wells with frozen topic contract.")
+        sequence = 0
+        while args.count == 0 or sequence < args.count:
+            for well_index in range(args.wells):
+                packet = mock_payload(sequence, well_index)
+                topic = f"aquatwin/well/{packet['well_id']}/telemetry"
+                payload = json.dumps(packet, separators=(",", ":"))
+                info = client.publish(topic, payload, qos=0, retain=False)
+                info.wait_for_publish(timeout=10)
+                if not info.is_published():
+                    print(f"[MOCK] Publish confirmation timed out for {packet['well_id']}.")
+                    return 1
+                print(f"[MOCK] {topic}: {payload}")
+            sequence += 1
+            if args.count == 0 or sequence < args.count:
                 time.sleep(args.interval)
         return 0
     except (OSError, mqtt.MQTTException) as exc:
@@ -119,4 +127,3 @@ def main() -> int:
 
 if __name__ == "__main__":
     raise SystemExit(main())
-
