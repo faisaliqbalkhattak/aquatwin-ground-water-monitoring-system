@@ -47,7 +47,7 @@ AquaTwin replaces that with a small ESP32-based node sitting at the well head th
 3. Reads a TDS probe to get a sense of dissolved solids in the water (→ salinity / quality proxy)
 4. Packages all of it into a JSON payload and publishes it over MQTT to HiveMQ Cloud
 
-That payload then drives a 3D digital twin of the well built in Unity — the water plane in the scene actually drops as the physical water level drops, and the tint of the water shifts as the readings change.
+Those payloads drive a runtime-discovered network of 3D well twins built in Unity — the water plane in the scene actually drops as the physical water level drops, and the tint of the water shifts as the readings change.
 
 ---
 
@@ -60,7 +60,7 @@ HiveMQ Cloud (MQTT TLS, port 8883)
         ↓
 Unity Digital Twin (subscribes via WSS, port 8884)
         ↓
-3D visualization: water level, TDS colour, pH, dashboard
+Runtime well registry -> multi-well geological dashboard, selection and per-well history
 ```
 
 ---
@@ -111,8 +111,8 @@ See [`cloud/README.md`](cloud/README.md) for HiveMQ Cloud setup, broker config, 
 See [`unity/README.md`](unity/README.md).
 
 1. Open the `unity/` folder as a project in Unity Hub (Unity 6000.3.2f1+).
-2. Select **AquaTwin → MQTT Connection Setup** → set to `LiveMqtt` → enter credentials → Save.
-3. Enter Play Mode — the 3D well responds to live sensor data.
+2. Select **AquaTwin → MQTT Connection Setup** → enter credentials → Save, or use the offline **Test demo** button after the connection check.
+3. Enter Play Mode — the dashboard checks HiveMQ first; disconnected users can replay the local ten-well JSON demo.
 
 ---
 
@@ -127,7 +127,7 @@ Every layer (firmware → broker → Unity) agrees on these keys:
 | `tds_ppm` | ppm | Total dissolved solids |
 | `ph` | — | pH estimate |
 
-Changing these keys requires updating firmware, Unity, and any backend in between.
+The Unity fleet dashboard also accepts the canonical `well_id`, `location`, `depth_to_water_cm`, `water_column_height_cm`, `tds_ppm`, `status`, `timestamp` contract on `aquatwin/well/+/telemetry`. The existing firmware contract remains supported on `digitaltwin/+/sensors`. See the [Unity guide](unity/README.md) for exact payloads, runtime discovery, calibration, and data-age behaviour.
 
 ---
 

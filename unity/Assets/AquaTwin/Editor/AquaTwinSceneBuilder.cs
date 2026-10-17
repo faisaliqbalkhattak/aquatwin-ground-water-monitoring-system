@@ -105,7 +105,10 @@ namespace AquaTwinEditor
 
         private static void TryAutoBuild()
         {
-            if (EditorApplication.isCompiling || EditorApplication.isUpdating)
+            // The runtime fleet intentionally hides the authored single-well scene.
+            // Never interpret those inactive objects as a migration request or exit Play Mode.
+            if (EditorApplication.isPlayingOrWillChangePlaymode ||
+                EditorApplication.isCompiling || EditorApplication.isUpdating)
                 return;
 
             Scene scene = SceneManager.GetActiveScene();
@@ -114,14 +117,6 @@ namespace AquaTwinEditor
 
             if (!NeedsProfessionalRebuild())
                 return;
-
-            // This migration is intentionally one-shot: only the obsolete generated
-            // scene is allowed to stop Play Mode. Normal future script edits will not.
-            if (EditorApplication.isPlayingOrWillChangePlaymode)
-            {
-                EditorApplication.isPlaying = false;
-                return;
-            }
 
             if (scene.name != "SampleScene")
                 return;

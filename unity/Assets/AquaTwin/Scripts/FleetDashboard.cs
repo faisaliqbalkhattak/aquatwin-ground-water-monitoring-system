@@ -1,0 +1,561 @@
+using System;
+using System.Collections.Generic;
+using System.Globalization;
+using System.Linq;
+using UnityEngine;
+using UnityEngine.UIElements;
+
+namespace AquaTwin
+{
+    [DefaultExecutionOrder(-1100)]
+    public sealed class FleetDashboard : MonoBehaviour
+    {
+        private static FleetDashboard instance;
+        private readonly FleetSession session = new();
+        public WellFleet Fleet => session.ActiveFleet;
+        private AquaTwinMqttSettingsData settings;
+        private FleetScene scene;
+        private UIDocument document;
+        private PanelSettings panel;
+        private VisualElement root, viewport, markers, empty, detailBody;
+        private Image viewportImage;
+        private ListView list;
+        private TextField search;
+        private DropdownField filter;
+        private readonly List<WellFleet.Well> filtered = new();
+        private readonly Dictionary<string, Button> pins = new();
+        private readonly Dictionary<string, Label> labels = new();
+        private VisualElement levelFill;
+        private Trend trend;
+        private string selected;
+        private string transport => session.Connection;
+        private DemoTelemetryDataset demoDataset;
+        private VisualElement demoControls;
+        private Button demoButton, pauseButton;
+        private IntegerField demoCountInput;
+        private bool demoPaused;
+        private float demoPlayhead, lastDemoClock;
+        private bool IsDemo => session.IsDemo;
+        private float nextRefresh, nextDemo;
+        private int knownCount = -1, demoCount;
+        private bool dragging;
+        private Vector2 pointer;
+        private Vector2 pointerStart;
+        private DashboardSettingsDialog settingsDialog;
+        private Button settingsButton;
+        private Label settingsToast;
+        private float toastUntil;
+        public string SelectedId => selected;
+        public string Transport => transport;
+        public void OpenSettings() { settingsDialog.Open(AquaTwinMqttLocalSettings.Load(), settingsButton); }
+
+        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
+        private static void ResetStatic() { instance = null; }
+
+        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
+        private static void Install() { EnsureInstance(); }
+
+        public static FleetDashboard EnsureInstance()
+        {
+            if (instance != null) return instance;
+            instance = FindFirstObjectByType<FleetDashboard>();
+            if (instance == null) instance = new GameObject("AquaTwin Well Network").AddComponent<FleetDashboard>();
+            return instance;
+        }
+
+        private void Awake()
+        {
+            instance = this;
+            settings = AquaTwinMqttLocalSettings.Load();
+            settings.staleAfterSeconds = Mathf.Max(3, settings.staleAfterSeconds);
+            settings.legacyWellDepthCm = Mathf.Max(.1f, settings.legacyWellDepthCm);
+            demoCount = 10;
+            // Preserve the authored presentation scene. The fleet experience replaces it only in Play Mode.
+            GameObject.Find("DashboardCanvas")?.SetActive(false);
+            GameObject.Find("AquaTwin_Environment")?.SetActive(false);
+            scene = gameObject.AddComponent<FleetScene>();
+            scene.Initialize();
+            BuildInterface();
+            Refresh();
+        }
+
+        public bool ApplyTelemetry(string json, string topic, bool retained, out string error)
+        {
+            return session.LiveFleet.ApplyJson(json, topic, retained, Time.unscaledTime,
+                DateTimeOffset.UtcNow.ToUnixTimeMilliseconds() / 1000.0,
+                settings.legacyWellDepthCm, false, out error);
+        }
+        public void SetTransportState(string state, string detail = null) { session.SetConnection(state, detail); nextRefresh = 0; }
+        public void StartDemo()
+        {
+            try
+            {
+                if (demoDataset == null)
+                {
+                    TextAsset asset = Resources.Load<TextAsset>("AquaTwinDemo");
+                    if (asset == null) throw new InvalidOperationException("AquaTwinDemo.json was not found in Resources.");
+                    demoDataset = DemoTelemetryDataset.Load(asset.text);
+                    demoCount = demoDataset.WellCount;
+                    demoCountInput.SetValueWithoutNotify(demoCount);
+                }
+                session.StartDemo();
+                selected = null; knownCount = -1;
+                demoPlayhead = 0; demoPaused = false;
+                lastDemoClock = Time.unscaledTime; nextDemo = lastDemoClock;
+                pauseButton.text = "Pause";
+                search.SetValueWithoutNotify(""); filter.SetValueWithoutNotify("All wells");
+                GenerateDemo(); nextDemo = Time.unscaledTime + demoDataset.SampleIntervalSeconds;
+                Set("demoError", "");
+                Refresh();
+            }
+            catch (Exception exception)
+            {
+                session.ReturnToLive();
+                Set("demoError", "Demo could not load: " + exception.Message);
+                Debug.LogError("[AquaTwin demo] " + exception.Message);
+                nextRefresh = 0;
+            }
+        }
+        public void ReturnToLive()
+        {
+            session.ReturnToLive(); selected = null; knownCount = -1;
+            search.SetValueWithoutNotify(""); filter.SetValueWithoutNotify("All wells"); Refresh();
+        }
+        private void RetryHiveMqtt()
+        {
+            var client = GetComponent<HiveMqttWellDataSource>();
+            if (client != null) client.RetryConnection();
+            else gameObject.AddComponent<HiveMqttWellDataSource>();
+        }
+        private string SaveDashboardSettings(AquaTwinMqttSettingsData draft)
+        {
+            bool reconnect = !settings.SameConnection(draft);
+            try { AquaTwinMqttLocalSettings.Save(draft); }
+            catch { return "Settings could not be saved. Check available local storage and try again."; }
+            settings = AquaTwinMqttLocalSettings.Load();
+            session.LiveFleet.RecalibrateLegacy(settings.legacyWellDepthCm);
+            var client = GetComponent<HiveMqttWellDataSource>();
+            if (client != null) client.ApplySettings(settings, reconnect);
+            else if (reconnect) gameObject.AddComponent<HiveMqttWellDataSource>();
+            settingsToast.text = reconnect ? "Settings saved · reconnecting to HiveMQ" : "Settings saved · monitoring preferences applied";
+            settingsToast.style.display = DisplayStyle.Flex;
+            toastUntil = Time.unscaledTime + 4;
+            nextRefresh = 0;
+            return null;
+        }
+        public void SelectWell(string id)
+        {
+            if (Fleet.Find(id) == null) return;
+            selected = id;
+            nextRefresh = 0;
+        }
+
+        private void Update()
+        {
+            float now = Time.unscaledTime;
+            if (settingsToast != null && now > toastUntil) settingsToast.style.display = DisplayStyle.None;
+            if (IsDemo && !demoPaused)
+            {
+                demoPlayhead += now - lastDemoClock;
+                if (demoPlayhead >= demoDataset.DurationSeconds)
+                {
+                    demoPlayhead %= demoDataset.DurationSeconds;
+                    session.DemoFleet.Clear(); selected = null; knownCount = -1; nextDemo = 0;
+                }
+                if (now >= nextDemo) { GenerateDemo(); nextDemo = now + demoDataset.SampleIntervalSeconds; }
+            }
+            lastDemoClock = now;
+            if (Time.unscaledTime >= nextRefresh) { Refresh(); nextRefresh = Time.unscaledTime + .5f; }
+        }
+
+        private void BuildInterface()
+        {
+            panel = ScriptableObject.CreateInstance<PanelSettings>();
+            panel.scaleMode = PanelScaleMode.ScaleWithScreenSize;
+            panel.referenceResolution = new Vector2Int(1600, 900);
+            panel.match = .5f;
+            panel.themeStyleSheet = Resources.Load<ThemeStyleSheet>("FleetTheme");
+            document = gameObject.AddComponent<UIDocument>();
+            document.panelSettings = panel;
+            document.sortingOrder = 100;
+            root = document.rootVisualElement;
+            root.AddToClassList("app");
+            root.style.unityFontDefinition = FontDefinition.FromFont(Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf"));
+            root.styleSheets.Add(Resources.Load<StyleSheet>("FleetDashboard"));
+            root.RegisterCallback<GeometryChangedEvent>(evt =>
+            {
+                root.EnableInClassList("compact", evt.newRect.width < 1200);
+                root.EnableInClassList("narrow", evt.newRect.width < 850);
+            });
+
+            var header = Box(root, "header");
+            var brand = Box(header, "brand");
+            Text(brand, "◈", "brand-mark");
+            var brandCopy = Box(brand, "brand-copy");
+            Text(brandCopy, "AQUATWIN", "brand-name");
+            Text(brandCopy, "GROUNDWATER INTELLIGENCE", "eyebrow");
+            var title = Box(header, "header-title");
+            Text(title, "Network overview", "page-title");
+            Text(title, "Observe the invisible.", "muted");
+            var headerRight = Box(header, "header-right");
+            var headerMeta = Box(headerRight, "header-meta");
+            KeyText(headerMeta, "connection", "", "connection");
+            settingsButton = DashboardSettingsDialog.CreateSettingsButton(OpenSettings);
+            headerMeta.Add(settingsButton);
+            KeyText(headerRight, "liveDataStatus", "NO SENSOR DATA RECEIVED", "data-status");
+            KeyText(headerRight, "connectionDetail", "", "connection-detail");
+            var connectionActions = Box(headerRight, "connection-actions");
+            demoButton = new Button(StartDemo) { text = "Test demo", name = "test-demo", tooltip = "Replay the local ten-well JSON dataset" };
+            demoButton.AddToClassList("tool"); demoButton.AddToClassList("demo-launch");
+            connectionActions.Add(demoButton);
+            Action(connectionActions, "Retry HiveMQ", RetryHiveMqtt, "Reload local credentials and retry the broker connection");
+            KeyText(headerRight, "demoError", "", "demo-error");
+            demoControls = Box(root, "demo-controls");
+            Text(demoControls, "DEMO DATA · LOCAL JSON", "demo-badge");
+            KeyText(demoControls, "demoTime", "", "demo-time");
+            demoCountInput = new IntegerField("Wells") { value = demoCount, isDelayed = true };
+            demoCountInput.AddToClassList("demo-input");
+            demoCountInput.RegisterValueChangedCallback(evt =>
+            {
+                demoCount = Mathf.Clamp(evt.newValue, 0, demoDataset?.WellCount ?? 10);
+                demoCountInput.SetValueWithoutNotify(demoCount);
+                if (IsDemo) StartDemo();
+            });
+            demoControls.Add(demoCountInput);
+            pauseButton = new Button(() => { demoPaused = !demoPaused; pauseButton.text = demoPaused ? "Resume" : "Pause"; nextRefresh = 0; }) { text = "Pause" };
+            pauseButton.AddToClassList("tool"); demoControls.Add(pauseButton);
+            Action(demoControls, "Restart demo", StartDemo, "Restart the JSON sequence and clear demo history");
+            Action(demoControls, "Return to live", ReturnToLive, "Show only real HiveMQ readings");
+            Text(demoControls, "90s loop · samples every 2s · pause lets readings become stale", "demo-help");
+
+            var summary = Box(root, "summary");
+            Metric(summary, "discovered", "DISCOVERED WELLS", "0", "Identities received this session");
+            Metric(summary, "reporting", "REPORTING NOW", "0", "Fresh telemetry, per well");
+            Metric(summary, "attention", "NEEDS ATTENTION", "0", "Fresh wells outside set thresholds");
+            Metric(summary, "fill", "MEAN WATER COLUMN", "—", "Unweighted mean · reporting wells", true);
+
+            var workspace = Box(root, "workspace");
+            var sidebar = Box(workspace, "sidebar");
+            var sideHead = Box(sidebar, "section-head");
+            Text(sideHead, "Well network", "section-title");
+            KeyText(sideHead, "listCount", "0", "count");
+            search = new TextField("Search well ID");
+            search.AddToClassList("search");
+            search.RegisterValueChangedCallback(_ => RefreshList());
+            sidebar.Add(search);
+            filter = new DropdownField(new List<string> { "All wells", "Reporting", "Attention", "Stale / offline" }, 0);
+            filter.AddToClassList("filter");
+            filter.RegisterValueChangedCallback(_ => RefreshList());
+            sidebar.Add(filter);
+            list = new ListView(filtered, 76, MakeRow, BindRow) { selectionType = SelectionType.None, virtualizationMethod = CollectionVirtualizationMethod.FixedHeight };
+            list.AddToClassList("well-list");
+            sidebar.Add(list);
+            KeyText(sidebar, "listEmpty", "", "list-empty");
+            Text(sidebar, "Wells appear automatically as new IDs arrive. Stale wells stay visible.", "sidebar-note");
+
+            var center = Box(workspace, "center");
+            var toolbar = Box(center, "view-toolbar");
+            var viewTitle = Box(toolbar, "view-title");
+            Text(viewTitle, "Subsurface twin", "section-title");
+            KeyText(viewTitle, "layout", "SCHEMATIC LAYOUT", "eyebrow");
+            var tools = Box(toolbar, "tools");
+            ToggleButton(tools, "Geology", () => { scene.ShowGeology = !scene.ShowGeology; return scene.ShowGeology; });
+            ToggleButton(tools, "Water envelope", () => { scene.ShowSurface = !scene.ShowSurface; return scene.ShowSurface; });
+            Action(tools, "−", () => scene.Zoom(2), "Zoom out");
+            Action(tools, "+", () => scene.Zoom(-2), "Zoom in");
+            Action(tools, "Reset view", () => scene.ResetView(), "Fit the entire network");
+            viewport = Box(center, "viewport");
+            viewportImage = new Image { image = scene.Texture, scaleMode = ScaleMode.StretchToFill, pickingMode = PickingMode.Ignore };
+            viewportImage.AddToClassList("viewport-image");
+            viewport.Add(viewportImage);
+            markers = Box(viewport, "markers"); markers.pickingMode = PickingMode.Ignore;
+            empty = Box(viewport, "empty-state"); empty.pickingMode = PickingMode.Ignore;
+            Text(empty, "◈", "empty-icon");
+            KeyText(empty, "emptyTitle", "Waiting for your wells", "empty-title");
+            KeyText(empty, "emptyMessage", "Each new sensor identity becomes a digital twin.\nConnect HiveMQ to start discovering your network.", "empty-message");
+            var corner = Box(viewport, "view-corner"); corner.pickingMode = PickingMode.Ignore;
+            Text(corner, "3D / GEOLOGICAL SECTION", "eyebrow");
+            Text(corner, "Drag to orbit · scroll to zoom · select a well", "muted");
+            viewport.RegisterCallback<GeometryChangedEvent>(_ => ResizeViewport());
+            viewport.RegisterCallback<PointerDownEvent>(evt =>
+            {
+                if (evt.button != 0 || evt.target is Button) return;
+                dragging = true; pointer = evt.position; pointerStart = pointer;
+                viewport.CapturePointer(evt.pointerId);
+            });
+            viewport.RegisterCallback<PointerMoveEvent>(evt =>
+            {
+                if (!dragging) return;
+                Vector2 position = evt.position;
+                scene.Orbit(position - pointer); pointer = position; PlaceMarkers();
+            });
+            viewport.RegisterCallback<PointerUpEvent>(evt =>
+            {
+                if (dragging && Vector2.Distance(pointerStart, evt.position) < 5)
+                {
+                    Vector2 local = viewport.WorldToLocal(evt.position);
+                    string id = scene.Pick(new Vector2(local.x / viewport.resolvedStyle.width, 1 - local.y / viewport.resolvedStyle.height));
+                    if (id != null) SelectWell(id);
+                }
+                dragging = false; viewport.ReleasePointer(evt.pointerId);
+            });
+            viewport.RegisterCallback<PointerCaptureOutEvent>(_ => dragging = false);
+            viewport.RegisterCallback<WheelEvent>(evt => { scene.Zoom(evt.delta.y); PlaceMarkers(); evt.StopPropagation(); });
+            var legend = Box(center, "view-legend");
+            Text(legend, "●  Water column", "legend-water");
+            Text(legend, "●  Elevated TDS", "legend-warning");
+            Text(legend, "●  Stale / offline", "muted");
+            Text(legend, "Relative fill · schematic depth", "muted");
+            Text(center, "Water envelope is an illustrative blend of fresh readings, not a surveyed aquifer surface.", "view-note");
+
+            var inspector = Box(workspace, "inspector");
+            var detailHeader = Box(inspector, "section-head");
+            Text(detailHeader, "Well details", "section-title");
+            var step = Box(detailHeader, "tools");
+            Action(step, "‹", () => StepSelection(-1), "Previous well");
+            Action(step, "›", () => StepSelection(1), "Next well");
+            KeyText(inspector, "selectedId", "Select a well", "well-title");
+            KeyText(inspector, "selectedStatus", "No telemetry received", "well-status");
+            var detailScroll = new ScrollView(ScrollViewMode.Vertical); detailScroll.AddToClassList("detail-scroll"); inspector.Add(detailScroll);
+            detailBody = Box(detailScroll, "detail-body");
+            Text(detailBody, "WATER COLUMN", "eyebrow");
+            KeyText(detailBody, "selectedFill", "—", "fill-value");
+            var track = Box(detailBody, "level-track"); levelFill = Box(track, "level-fill");
+            KeyText(detailBody, "calibration", "", "muted");
+            DetailMetric("depth", "Depth to water", "cm below sensor");
+            DetailMetric("column", "Water column height", "cm above well bottom");
+            DetailMetric("tds", "Dissolved solids", "ppm · TDS");
+            KeyText(detailBody, "tdsNote", "", "metric-note");
+            DetailMetric("ph", "pH", "Optional sensor channel");
+            var trendHeader = Box(detailBody, "trend-header");
+            Text(trendHeader, "Depth history", "section-title");
+            KeyText(trendHeader, "trendCount", "0 / 120", "eyebrow");
+            KeyText(detailBody, "trendRange", "Waiting for samples", "muted");
+            trend = new Trend(); trend.AddToClassList("trend"); detailBody.Add(trend);
+            KeyText(detailBody, "trendNote", "At least two fresh samples are needed.", "muted");
+            KeyText(detailBody, "location", "", "location");
+            KeyText(detailBody, "updated", "", "muted");
+            Text(detailBody, "Indicators use configurable operational thresholds. They do not certify water safety.", "inspector-note");
+            var footer = Box(root, "footer");
+            KeyText(footer, "source", "", "eyebrow");
+            Text(footer, "AQUATWIN  /  A LIVING VIEW BELOW THE SURFACE", "eyebrow");
+            settingsToast = Text(root, "", "settings-toast");
+            settingsToast.style.display = DisplayStyle.None;
+            settingsToast.pickingMode = PickingMode.Ignore;
+            settingsDialog = new DashboardSettingsDialog(root, SaveDashboardSettings);
+        }
+
+        private void Refresh()
+        {
+            if (selected == null || Fleet.Find(selected) == null) selected = Fleet.Wells.FirstOrDefault()?.Id;
+            float now = Time.unscaledTime;
+            var fresh = Fleet.Wells.Where(w => w.IsFresh(now, settings.staleAfterSeconds)).ToList();
+            Set("discovered", Fleet.Wells.Count.ToString());
+            Set("reporting", fresh.Count.ToString());
+            Set("attention", fresh.Count(w => w.NeedsReview(settings.reviewTdsPpm, settings.lowWaterPercent / 100)).ToString());
+            Set("fill", fresh.Count == 0 ? "—" : F(fresh.Average(w => w.Fill) * 100, "0.0") + "%");
+            bool connected = transport == "CONNECTED";
+            string state = connected ? "●  HIVEMQ / CONNECTED · ONLINE" : transport == "CONNECTING" ? "●  HIVEMQ / CONNECTING…" : "●  HIVEMQ / OFFLINE · DISCONNECTED";
+            Set("connection", state);
+            labels["connection"].EnableInClassList("offline", transport == "OFFLINE");
+            labels["connection"].EnableInClassList("connecting", transport == "CONNECTING");
+            Set("connectionDetail", connected && session.FreshLiveCount(now, settings.staleAfterSeconds) == 0
+                ? "Authenticated and subscribed; waiting for fresh sensor readings."
+                : session.ConnectionDetail);
+            Set("liveDataStatus", session.LiveDataStatus(now, settings.staleAfterSeconds));
+            labels["liveDataStatus"].EnableInClassList("no-data", session.FreshLiveCount(now, settings.staleAfterSeconds) == 0);
+            // A broker can be reachable without any sensors, or contain only stale/retained
+            // readings. Demo must remain available, even while the broker is connecting.
+            demoButton.style.display = session.DemoAvailable ? DisplayStyle.Flex : DisplayStyle.None;
+            demoControls.style.display = IsDemo ? DisplayStyle.Flex : DisplayStyle.None;
+            if (IsDemo) Set("demoTime", F(demoPlayhead, "0") + " / " + F(demoDataset.DurationSeconds, "0") + "s" + (demoPaused ? " · PAUSED" : " · REPLAYING"));
+            Set("source", IsDemo ? "DEMO DATA  /  LOCAL AQUATWINDEMO.JSON  /  SIMULATED SENSOR READINGS" : settings.applyToDigitalTwin ? "HIVEMQ CLOUD  /  AUTO-DISCOVERY ENABLED" : "HIVEMQ CLOUD  /  TWIN UPDATES PAUSED IN SETTINGS");
+            scene.Refresh(Fleet, selected, now, settings.staleAfterSeconds, settings.reviewTdsPpm);
+            Set("layout", scene.Geographic ? "COORDINATE LAYOUT · NORMALIZED EXTENTS" : "SCHEMATIC LAYOUT · NOT GEOGRAPHIC");
+            empty.style.display = Fleet.Wells.Count == 0 ? DisplayStyle.Flex : DisplayStyle.None;
+            Set("emptyTitle", IsDemo ? "Your demo workspace is ready" : "No sensor data available");
+            Set("emptyMessage", IsDemo ? "Set the demo well count above to explore a network." : !settings.applyToDigitalTwin ? "Live updates are paused in Settings.\nUse Test demo to explore the local dataset." : connected ? "HiveMQ is connected, but no sensor readings have arrived.\nUse Test demo above to explore ten wells from local JSON." : "Use Test demo above to explore ten wells from local JSON.\nHiveMQ connectivity is shown separately in the header.");
+            RefreshList(); RefreshDetails();
+            if (knownCount != Fleet.Wells.Count) { RebuildMarkers(); knownCount = Fleet.Wells.Count; }
+            PlaceMarkers();
+        }
+
+        private void RefreshList()
+        {
+            filtered.Clear();
+            foreach (var well in Fleet.Wells)
+            {
+                bool fresh = well.IsFresh(Time.unscaledTime, settings.staleAfterSeconds);
+                if (!string.IsNullOrWhiteSpace(search.value) && well.Id.IndexOf(search.value, StringComparison.OrdinalIgnoreCase) < 0) continue;
+                if (filter.index == 1 && !fresh || filter.index == 2 && (!fresh || !well.NeedsReview(settings.reviewTdsPpm, settings.lowWaterPercent / 100)) || filter.index == 3 && fresh) continue;
+                filtered.Add(well);
+            }
+            list.RefreshItems();
+            Set("listCount", filtered.Count + " / " + Fleet.Wells.Count);
+            Set("listEmpty", filtered.Count == 0 ? "No wells match this view." : "");
+        }
+        private VisualElement MakeRow()
+        {
+            var button = new Button(); button.AddToClassList("well-row");
+            button.Add(new Label { name = "id", enableRichText = false });
+            button.Add(new Label { name = "values" });
+            button.Add(new Label { name = "status" });
+            button.clicked += () => SelectWell(button.userData as string);
+            return button;
+        }
+        private void BindRow(VisualElement row, int index)
+        {
+            if (index >= filtered.Count) return;
+            var well = filtered[index]; row.userData = well.Id;
+            row.Q<Label>("id").text = well.Id;
+            row.Q<Label>("values").text = F(well.Fill * 100, "0") + "% column   ·   " + F(well.Tds, "0") + " ppm";
+            row.Q<Label>("status").text = Status(well);
+            row.EnableInClassList("selected", selected == well.Id);
+            row.EnableInClassList("stale", !well.IsFresh(Time.unscaledTime, settings.staleAfterSeconds));
+            row.tooltip = well.Id + " · " + Status(well);
+        }
+        private string Status(WellFleet.Well well)
+        {
+            if (!well.ReportedOnline) return "●  OFFLINE";
+            if (!well.AgeKnown) return "●  RETAINED / AGE UNKNOWN";
+            if (!well.IsFresh(Time.unscaledTime, settings.staleAfterSeconds)) return "●  STALE · " + Age(well);
+            if (well.NeedsReview(settings.reviewTdsPpm, settings.lowWaterPercent / 100)) return "●  REVIEW";
+            return well.Demo ? "●  DEMO / REPORTING" : "●  REPORTING";
+        }
+        private string Age(WellFleet.Well well)
+        {
+            float age = well.Age(Time.unscaledTime);
+            return age < 60 ? F(age, "0") + "s ago" : age < 3600 ? F(age / 60, "0") + "m ago" : F(age / 3600, "0") + "h ago";
+        }
+        private void RefreshDetails()
+        {
+            var well = Fleet.Find(selected);
+            detailBody.style.display = well == null ? DisplayStyle.None : DisplayStyle.Flex;
+            Set("selectedId", well?.Id ?? "Select a well");
+            Set("selectedStatus", well == null ? "No telemetry received" : Status(well));
+            if (well == null) return;
+            Set("selectedFill", F(well.Fill * 100, "0.0") + "%");
+            levelFill.style.width = Length.Percent(well.Fill * 100);
+            Set("calibration", well.UsesLegacyCalibration ? F(settings.legacyWellDepthCm, "0.#") + " cm legacy calibration" : F(well.DepthCm + well.ColumnCm, "0.#") + " cm total reported depth");
+            Set("depth", F(well.DepthCm, "0.0")); Set("column", F(well.ColumnCm, "0.0"));
+            Set("tds", F(well.Tds, "0")); Set("ph", float.IsNaN(well.Ph) ? "Not supplied" : F(well.Ph, "0.00"));
+            Set("tdsNote", well.Tds > settings.reviewTdsPpm ? "Above " + F(settings.reviewTdsPpm, "0") + " ppm review threshold" : "Below " + F(settings.reviewTdsPpm, "0") + " ppm review threshold");
+            labels["tdsNote"].EnableInClassList("warning", well.Tds > settings.reviewTdsPpm);
+            trend.Samples = well.History; trend.Timeout = settings.staleAfterSeconds; trend.MarkDirtyRepaint();
+            Set("trendCount", well.History.Count + " / 120");
+            bool enough = well.History.Count > 1;
+            float min = enough ? well.History.Min(s => s.Depth) : 0;
+            float max = enough ? well.History.Max(s => s.Depth) : 0;
+            Set("trendRange", enough ? F(min, "0.0") + " – " + F(max, "0.0") + " cm below sensor" : "Waiting for a second observation");
+            Set("trendNote", enough ? "Last " + F(well.History.Last().Time - well.History.First().Time, "0") + "s · depth increases downward" : "History builds from incoming readings.");
+            Set("location", well.HasLocation ? well.Latitude.ToString("0.00000", CultureInfo.InvariantCulture) + ", " + well.Longitude.ToString("0.00000", CultureInfo.InvariantCulture) : "Location not supplied · schematic placement");
+            Set("updated", well.AgeKnown ? "Last reading " + Age(well) : "Retained reading · source age unknown");
+        }
+        private void RebuildMarkers()
+        {
+            markers.Clear(); pins.Clear();
+            foreach (var well in Fleet.Wells)
+            {
+                string id = well.Id;
+                var pin = new Button(() => SelectWell(id)) { text = id, tooltip = "Select " + id, enableRichText = false };
+                pin.AddToClassList("well-pin"); markers.Add(pin); pins.Add(id, pin);
+            }
+        }
+        private void PlaceMarkers()
+        {
+            foreach (var pair in pins)
+            {
+                Vector3 point = scene.Camera.WorldToViewportPoint(scene.HeadPosition(pair.Key));
+                pair.Value.style.left = point.x * viewport.resolvedStyle.width;
+                pair.Value.style.top = (1 - point.y) * viewport.resolvedStyle.height;
+                pair.Value.style.display = point.z > 0 && point.x > 0 && point.x < 1 && point.y > 0 && point.y < 1 ? DisplayStyle.Flex : DisplayStyle.None;
+                pair.Value.EnableInClassList("selected", pair.Key == selected);
+                var well = Fleet.Find(pair.Key);
+                pair.Value.EnableInClassList("stale", well != null && !well.IsFresh(Time.unscaledTime, settings.staleAfterSeconds));
+            }
+        }
+        private void ResizeViewport()
+        {
+            if (viewport.resolvedStyle.width < 2 || viewport.resolvedStyle.height < 2) return;
+            scene.Resize(Mathf.RoundToInt(viewport.resolvedStyle.width * panel.scale), Mathf.RoundToInt(viewport.resolvedStyle.height * panel.scale));
+            viewportImage.image = scene.Texture; PlaceMarkers();
+        }
+        private void StepSelection(int delta)
+        {
+            if (Fleet.Wells.Count == 0) return;
+            int index = Fleet.Wells.ToList().FindIndex(w => w.Id == selected);
+            SelectWell(Fleet.Wells[(index + delta + Fleet.Wells.Count) % Fleet.Wells.Count].Id);
+        }
+        private void GenerateDemo()
+        {
+            if (demoDataset == null) return;
+            demoDataset.Emit(session.DemoFleet, demoPlayhead, Time.unscaledTime,
+                DateTimeOffset.UtcNow.ToUnixTimeMilliseconds() / 1000.0, demoCount);
+        }
+        private void Metric(VisualElement parent, string key, string title, string value, string note, bool last = false)
+        {
+            var metric = Box(parent, "summary-metric");
+            if (last) metric.AddToClassList("summary-last");
+            Text(metric, title, "eyebrow");
+            KeyText(metric, key, value, "summary-value"); Text(metric, note, "metric-caption");
+        }
+        private void DetailMetric(string key, string title, string unit)
+        {
+            var metric = Box(detailBody, "detail-metric");
+            var caption = Box(metric, "metric-caption-block"); Text(caption, title, "metric-label"); Text(caption, unit, "muted");
+            KeyText(metric, key, "—", "detail-value");
+        }
+        private static VisualElement Box(VisualElement parent, string css)
+        {
+            var element = new VisualElement(); element.AddToClassList(css); parent.Add(element); return element;
+        }
+        private static Label Text(VisualElement parent, string text, string css)
+        {
+            var element = new Label(text) { enableRichText = false }; element.AddToClassList(css); parent.Add(element); return element;
+        }
+        private void KeyText(VisualElement parent, string key, string value, string css) { labels[key] = Text(parent, value, css); }
+        private void Set(string key, string value) { labels[key].text = value; }
+        private static string F(float value, string format) => value.ToString(format, CultureInfo.InvariantCulture);
+        private static void Action(VisualElement parent, string title, System.Action action, string tooltip)
+        {
+            var button = new Button(action) { text = title, tooltip = tooltip }; button.AddToClassList("tool"); parent.Add(button);
+        }
+        private static void ToggleButton(VisualElement parent, string title, Func<bool> toggle)
+        {
+            var button = new Button { text = title }; button.AddToClassList("tool"); button.AddToClassList("active");
+            button.clicked += () => button.EnableInClassList("active", toggle()); parent.Add(button);
+        }
+        private void OnDestroy() { if (panel != null) Destroy(panel); if (instance == this) instance = null; }
+
+        private sealed class Trend : VisualElement
+        {
+            public List<WellFleet.Sample> Samples;
+            public float Timeout;
+            public Trend() { generateVisualContent += Draw; pickingMode = PickingMode.Ignore; }
+            private void Draw(MeshGenerationContext context)
+            {
+                var painter = context.painter2D;
+                float width = contentRect.width, height = contentRect.height;
+                if (width < 2 || height < 2) return;
+                painter.strokeColor = new Color(.14f, .23f, .26f); painter.lineWidth = 1;
+                for (int i = 0; i < 4; i++)
+                {
+                    float y = 5 + (height - 10) * i / 3;
+                    painter.BeginPath(); painter.MoveTo(new Vector2(0, y)); painter.LineTo(new Vector2(width, y)); painter.Stroke();
+                }
+                if (Samples == null || Samples.Count < 2) return;
+                float min = Samples.Min(s => s.Depth), max = Samples.Max(s => s.Depth);
+                float padding = Mathf.Max(1, (max - min) * .15f); min -= padding; max += padding;
+                float start = Samples[0].Time, duration = Mathf.Max(.01f, Samples[Samples.Count - 1].Time - start);
+                painter.strokeColor = new Color(.33f, .88f, .75f); painter.lineWidth = 2;
+                painter.BeginPath();
+                for (int i = 0; i < Samples.Count; i++)
+                {
+                    var point = new Vector2((Samples[i].Time - start) / duration * width, 5 + (Samples[i].Depth - min) / (max - min) * (height - 10));
+                    if (i == 0 || Samples[i].Time - Samples[i - 1].Time > Timeout) painter.MoveTo(point); else painter.LineTo(point);
+                }
+                painter.Stroke();
+            }
+        }
+    }
+}

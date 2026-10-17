@@ -1,0 +1,34 @@
+namespace AquaTwin
+{
+    /// <summary>Broker connectivity stays independent from the active visualization data source.</summary>
+    public sealed class FleetSession
+    {
+        public WellFleet LiveFleet { get; } = new();
+        public WellFleet DemoFleet { get; } = new();
+        public WellFleet ActiveFleet => IsDemo ? DemoFleet : LiveFleet;
+        public bool IsDemo { get; private set; }
+        public string Connection { get; private set; } = "CONNECTING";
+        public string ConnectionDetail { get; private set; } = "Opening secure HiveMQ connection…";
+        public void SetConnection(string state, string detail)
+        {
+            Connection = state;
+            ConnectionDetail = detail ?? (state == "CONNECTED" ? "Subscribed to well telemetry" : "HiveMQ connection unavailable");
+        }
+        public void StartDemo() { DemoFleet.Clear(); IsDemo = true; }
+        public void ReturnToLive() { IsDemo = false; }
+        public bool DemoAvailable => !IsDemo;
+        public int FreshLiveCount(float now, float timeout)
+        {
+            int count = 0;
+            foreach (var well in LiveFleet.Wells) if (well.IsFresh(now, timeout)) count++;
+            return count;
+        }
+        public string LiveDataStatus(float now, float timeout)
+        {
+            int fresh = FreshLiveCount(now, timeout);
+            if (fresh == 0)
+                return LiveFleet.Wells.Count == 0 ? "NO SENSOR DATA RECEIVED" : "NO FRESH SENSOR DATA";
+            return (Connection == "CONNECTED" ? "SENSORS REPORTING · " : "RECENT READINGS · ") + fresh;
+        }
+    }
+}

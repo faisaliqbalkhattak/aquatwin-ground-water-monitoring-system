@@ -1,0 +1,508 @@
+{
+  "name": "AquaTwin ten-well demonstration",
+  "description": "Synthetic local data. Keyframes interpolate every two seconds; timestamps are rebased to the current clock during playback. No packets are published to HiveMQ.",
+  "duration_seconds": 90,
+  "sample_interval_seconds": 2,
+  "wells": [
+    {
+      "well_id": "DEMO_001",
+      "scenario": "Stable reference well",
+      "location": {
+        "lat": 24.45,
+        "lng": 54.37
+      },
+      "samples": [
+        {
+          "at_seconds": 0,
+          "depth_to_water_cm": 120,
+          "water_column_height_cm": 380,
+          "tds_ppm": 240,
+          "status": "ONLINE",
+          "ph": 6.9
+        },
+        {
+          "at_seconds": 18,
+          "depth_to_water_cm": 130,
+          "water_column_height_cm": 370,
+          "tds_ppm": 252,
+          "status": "ONLINE",
+          "ph": 6.94
+        },
+        {
+          "at_seconds": 36,
+          "depth_to_water_cm": 108,
+          "water_column_height_cm": 392,
+          "tds_ppm": 268,
+          "status": "ONLINE",
+          "ph": 6.99
+        },
+        {
+          "at_seconds": 60,
+          "depth_to_water_cm": 136,
+          "water_column_height_cm": 364,
+          "tds_ppm": 235,
+          "status": "ONLINE",
+          "ph": 6.92
+        },
+        {
+          "at_seconds": 90,
+          "depth_to_water_cm": 120,
+          "water_column_height_cm": 380,
+          "tds_ppm": 240,
+          "status": "ONLINE",
+          "ph": 6.9
+        }
+      ]
+    },
+    {
+      "well_id": "DEMO_002",
+      "scenario": "Gradual drawdown",
+      "location": {
+        "lat": 24.4507,
+        "lng": 54.374
+      },
+      "samples": [
+        {
+          "at_seconds": 0,
+          "depth_to_water_cm": 165,
+          "water_column_height_cm": 415,
+          "tds_ppm": 279,
+          "status": "ONLINE",
+          "ph": 7.1
+        },
+        {
+          "at_seconds": 18,
+          "depth_to_water_cm": 177,
+          "water_column_height_cm": 403,
+          "tds_ppm": 291,
+          "status": "ONLINE",
+          "ph": 7.14
+        },
+        {
+          "at_seconds": 36,
+          "depth_to_water_cm": 197,
+          "water_column_height_cm": 383,
+          "tds_ppm": 307,
+          "status": "ONLINE",
+          "ph": 7.19
+        },
+        {
+          "at_seconds": 60,
+          "depth_to_water_cm": 211,
+          "water_column_height_cm": 369,
+          "tds_ppm": 274,
+          "status": "ONLINE",
+          "ph": 7.12
+        },
+        {
+          "at_seconds": 90,
+          "depth_to_water_cm": 225,
+          "water_column_height_cm": 355,
+          "tds_ppm": 279,
+          "status": "ONLINE",
+          "ph": 7.1
+        }
+      ]
+    },
+    {
+      "well_id": "DEMO_003",
+      "scenario": "Recharge and recovery",
+      "location": {
+        "lat": 24.45,
+        "lng": 54.378
+      },
+      "samples": [
+        {
+          "at_seconds": 0,
+          "depth_to_water_cm": 210,
+          "water_column_height_cm": 450,
+          "tds_ppm": 318,
+          "status": "ONLINE",
+          "ph": 7.3
+        },
+        {
+          "at_seconds": 18,
+          "depth_to_water_cm": 202,
+          "water_column_height_cm": 458,
+          "tds_ppm": 330,
+          "status": "ONLINE",
+          "ph": 7.34
+        },
+        {
+          "at_seconds": 36,
+          "depth_to_water_cm": 180,
+          "water_column_height_cm": 480,
+          "tds_ppm": 346,
+          "status": "ONLINE",
+          "ph": 7.39
+        },
+        {
+          "at_seconds": 60,
+          "depth_to_water_cm": 155,
+          "water_column_height_cm": 505,
+          "tds_ppm": 313,
+          "status": "ONLINE",
+          "ph": 7.32
+        },
+        {
+          "at_seconds": 90,
+          "depth_to_water_cm": 145,
+          "water_column_height_cm": 515,
+          "tds_ppm": 318,
+          "status": "ONLINE",
+          "ph": 7.3
+        }
+      ]
+    },
+    {
+      "well_id": "DEMO_004",
+      "scenario": "Rising dissolved solids",
+      "location": {
+        "lat": 24.4507,
+        "lng": 54.382
+      },
+      "samples": [
+        {
+          "at_seconds": 0,
+          "depth_to_water_cm": 255,
+          "water_column_height_cm": 245,
+          "tds_ppm": 420,
+          "status": "ONLINE",
+          "ph": 7.5
+        },
+        {
+          "at_seconds": 18,
+          "depth_to_water_cm": 265,
+          "water_column_height_cm": 235,
+          "tds_ppm": 540,
+          "status": "ONLINE",
+          "ph": 7.54
+        },
+        {
+          "at_seconds": 36,
+          "depth_to_water_cm": 243,
+          "water_column_height_cm": 257,
+          "tds_ppm": 720,
+          "status": "ONLINE",
+          "ph": 7.59
+        },
+        {
+          "at_seconds": 60,
+          "depth_to_water_cm": 271,
+          "water_column_height_cm": 229,
+          "tds_ppm": 880,
+          "status": "ONLINE",
+          "ph": 7.52
+        },
+        {
+          "at_seconds": 90,
+          "depth_to_water_cm": 255,
+          "water_column_height_cm": 245,
+          "tds_ppm": 520,
+          "status": "ONLINE",
+          "ph": 7.5
+        }
+      ]
+    },
+    {
+      "well_id": "DEMO_005",
+      "scenario": "Missing optional pH channel",
+      "location": {
+        "lat": 24.454,
+        "lng": 54.37
+      },
+      "samples": [
+        {
+          "at_seconds": 0,
+          "depth_to_water_cm": 120,
+          "water_column_height_cm": 460,
+          "tds_ppm": 396,
+          "status": "ONLINE"
+        },
+        {
+          "at_seconds": 18,
+          "depth_to_water_cm": 130,
+          "water_column_height_cm": 450,
+          "tds_ppm": 408,
+          "status": "ONLINE"
+        },
+        {
+          "at_seconds": 36,
+          "depth_to_water_cm": 108,
+          "water_column_height_cm": 472,
+          "tds_ppm": 424,
+          "status": "ONLINE"
+        },
+        {
+          "at_seconds": 60,
+          "depth_to_water_cm": 136,
+          "water_column_height_cm": 444,
+          "tds_ppm": 391,
+          "status": "ONLINE"
+        },
+        {
+          "at_seconds": 90,
+          "depth_to_water_cm": 120,
+          "water_column_height_cm": 460,
+          "tds_ppm": 396,
+          "status": "ONLINE"
+        }
+      ]
+    },
+    {
+      "well_id": "DEMO_006",
+      "scenario": "Low water column warning and recovery",
+      "location": {
+        "lat": 24.4547,
+        "lng": 54.374
+      },
+      "samples": [
+        {
+          "at_seconds": 0,
+          "depth_to_water_cm": 610,
+          "water_column_height_cm": 50,
+          "tds_ppm": 435,
+          "status": "ONLINE",
+          "ph": 7.1
+        },
+        {
+          "at_seconds": 18,
+          "depth_to_water_cm": 635,
+          "water_column_height_cm": 25,
+          "tds_ppm": 447,
+          "status": "ONLINE",
+          "ph": 7.14
+        },
+        {
+          "at_seconds": 36,
+          "depth_to_water_cm": 620,
+          "water_column_height_cm": 40,
+          "tds_ppm": 463,
+          "status": "ONLINE",
+          "ph": 7.19
+        },
+        {
+          "at_seconds": 60,
+          "depth_to_water_cm": 400,
+          "water_column_height_cm": 260,
+          "tds_ppm": 430,
+          "status": "ONLINE",
+          "ph": 7.12
+        },
+        {
+          "at_seconds": 90,
+          "depth_to_water_cm": 180,
+          "water_column_height_cm": 480,
+          "tds_ppm": 435,
+          "status": "ONLINE",
+          "ph": 7.1
+        }
+      ]
+    },
+    {
+      "well_id": "DEMO_007",
+      "scenario": "TDS spike and recovery",
+      "location": {
+        "lat": 24.454,
+        "lng": 54.378
+      },
+      "samples": [
+        {
+          "at_seconds": 0,
+          "depth_to_water_cm": 210,
+          "water_column_height_cm": 290,
+          "tds_ppm": 350,
+          "status": "ONLINE",
+          "ph": 7.3
+        },
+        {
+          "at_seconds": 18,
+          "depth_to_water_cm": 220,
+          "water_column_height_cm": 280,
+          "tds_ppm": 1200,
+          "status": "ONLINE",
+          "ph": 7.34
+        },
+        {
+          "at_seconds": 36,
+          "depth_to_water_cm": 198,
+          "water_column_height_cm": 302,
+          "tds_ppm": 2200,
+          "status": "ONLINE",
+          "ph": 7.39
+        },
+        {
+          "at_seconds": 60,
+          "depth_to_water_cm": 226,
+          "water_column_height_cm": 274,
+          "tds_ppm": 650,
+          "status": "ONLINE",
+          "ph": 7.32
+        },
+        {
+          "at_seconds": 90,
+          "depth_to_water_cm": 210,
+          "water_column_height_cm": 290,
+          "tds_ppm": 350,
+          "status": "ONLINE",
+          "ph": 7.3
+        }
+      ]
+    },
+    {
+      "well_id": "DEMO_008",
+      "scenario": "Silent sensor becomes stale then reconnects",
+      "location": {
+        "lat": 24.4547,
+        "lng": 54.382
+      },
+      "samples": [
+        {
+          "at_seconds": 0,
+          "depth_to_water_cm": 255,
+          "water_column_height_cm": 325,
+          "tds_ppm": 513,
+          "status": "ONLINE",
+          "ph": 7.5,
+          "transmit": true
+        },
+        {
+          "at_seconds": 18,
+          "depth_to_water_cm": 265,
+          "water_column_height_cm": 315,
+          "tds_ppm": 525,
+          "status": "ONLINE",
+          "ph": 7.54,
+          "transmit": false
+        },
+        {
+          "at_seconds": 36,
+          "depth_to_water_cm": 243,
+          "water_column_height_cm": 337,
+          "tds_ppm": 541,
+          "status": "ONLINE",
+          "ph": 7.59,
+          "transmit": false
+        },
+        {
+          "at_seconds": 60,
+          "depth_to_water_cm": 271,
+          "water_column_height_cm": 309,
+          "tds_ppm": 508,
+          "status": "ONLINE",
+          "ph": 7.52,
+          "transmit": true
+        },
+        {
+          "at_seconds": 90,
+          "depth_to_water_cm": 255,
+          "water_column_height_cm": 325,
+          "tds_ppm": 513,
+          "status": "ONLINE",
+          "ph": 7.5,
+          "transmit": true
+        }
+      ]
+    },
+    {
+      "well_id": "DEMO_009",
+      "scenario": "Explicit OFFLINE then ONLINE",
+      "location": {
+        "lat": 24.458,
+        "lng": 54.37
+      },
+      "samples": [
+        {
+          "at_seconds": 0,
+          "depth_to_water_cm": 120,
+          "water_column_height_cm": 540,
+          "tds_ppm": 552,
+          "status": "OFFLINE",
+          "ph": 6.9
+        },
+        {
+          "at_seconds": 18,
+          "depth_to_water_cm": 130,
+          "water_column_height_cm": 530,
+          "tds_ppm": 564,
+          "status": "OFFLINE",
+          "ph": 6.94
+        },
+        {
+          "at_seconds": 36,
+          "depth_to_water_cm": 108,
+          "water_column_height_cm": 552,
+          "tds_ppm": 580,
+          "status": "ONLINE",
+          "ph": 6.99
+        },
+        {
+          "at_seconds": 60,
+          "depth_to_water_cm": 136,
+          "water_column_height_cm": 524,
+          "tds_ppm": 547,
+          "status": "ONLINE",
+          "ph": 6.92
+        },
+        {
+          "at_seconds": 90,
+          "depth_to_water_cm": 120,
+          "water_column_height_cm": 540,
+          "tds_ppm": 552,
+          "status": "ONLINE",
+          "ph": 6.9
+        }
+      ]
+    },
+    {
+      "well_id": "DEMO_010",
+      "scenario": "Late discovery after 12 seconds",
+      "location": {
+        "lat": 24.4587,
+        "lng": 54.374
+      },
+      "samples": [
+        {
+          "at_seconds": 12,
+          "depth_to_water_cm": 165,
+          "water_column_height_cm": 335,
+          "tds_ppm": 591,
+          "status": "ONLINE",
+          "ph": 7.1
+        },
+        {
+          "at_seconds": 24,
+          "depth_to_water_cm": 175,
+          "water_column_height_cm": 325,
+          "tds_ppm": 603,
+          "status": "ONLINE",
+          "ph": 7.14
+        },
+        {
+          "at_seconds": 42,
+          "depth_to_water_cm": 153,
+          "water_column_height_cm": 347,
+          "tds_ppm": 619,
+          "status": "ONLINE",
+          "ph": 7.19
+        },
+        {
+          "at_seconds": 66,
+          "depth_to_water_cm": 181,
+          "water_column_height_cm": 319,
+          "tds_ppm": 586,
+          "status": "ONLINE",
+          "ph": 7.12
+        },
+        {
+          "at_seconds": 90,
+          "depth_to_water_cm": 165,
+          "water_column_height_cm": 335,
+          "tds_ppm": 591,
+          "status": "ONLINE",
+          "ph": 7.1
+        }
+      ]
+    }
+  ]
+}
