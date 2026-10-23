@@ -7,7 +7,7 @@ namespace AquaTwin
     public static class AquaTwinMqttLocalSettings
     {
         public const string BrokerHost =
-            "6a3cba0faab347c9a1a0c5afcfbd3ca3.s1.eu.hivemq.cloud";
+            "1651fcbe155949e089f34c9f4ce8b612.s1.eu.hivemq.cloud";
         public const int BrokerPort = 8884;
         public const string WebSocketPath = "/mqtt";
         public const string Topic = "digitaltwin/well01/sensors";

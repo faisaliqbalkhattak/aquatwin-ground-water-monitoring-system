@@ -14,10 +14,12 @@ namespace AquaTwin
         // Retained for compatibility with older saved settings.
         public AquaTwinDataMode mode = AquaTwinDataMode.LiveMqtt;
         public int demoWellCount = 10;
-        public string brokerHost = "6a3cba0faab347c9a1a0c5afcfbd3ca3.s1.eu.hivemq.cloud";
+        public string brokerHost = "1651fcbe155949e089f34c9f4ce8b612.s1.eu.hivemq.cloud";
         public int brokerPort = 8884;
         public string webSocketPath = "/mqtt";
-        public string username = "well_dt_esp32";
+        public string telemetryTopics = MqttTopics.Defaults;
+        public string[] SubscriptionTopics => Array.ConvertAll(MqttTopics.Parse(telemetryTopics), topic => topic.Trim());
+        public string username = "aquatwin_esp32";
         public string password = "";
         public bool rememberPassword;
         public bool applyToDigitalTwin = true;
@@ -26,12 +28,17 @@ namespace AquaTwin
         public float reviewTdsPpm = 600;
         public float lowWaterPercent = 20;
         public AquaTwinMqttSettingsData Copy() => (AquaTwinMqttSettingsData)MemberwiseClone();
-        public Uri Endpoint => new UriBuilder("wss", brokerHost, brokerPort, webSocketPath).Uri;
+        // HiveMQ Cloud exposes the same broker through TCP/TLS and WSS listeners.
+        // Accept device credentials verbatim, but browsers must use the WSS listener.
+        public bool UsesDevicePort => brokerPort == 8883 && (brokerHost ?? "").EndsWith(".hivemq.cloud", StringComparison.OrdinalIgnoreCase);
+        public int EffectiveWebSocketPort => UsesDevicePort ? 8884 : brokerPort;
+        public Uri Endpoint => new UriBuilder("wss", brokerHost, EffectiveWebSocketPort, webSocketPath).Uri;
         public void Normalize()
         {
             brokerHost = (brokerHost ?? "").Trim();
             webSocketPath = (webSocketPath ?? "").Trim();
             username = (username ?? "").Trim();
+            telemetryTopics = string.Join("\n", SubscriptionTopics);
             password ??= "";
         }
         public bool TryValidate(out string field, out string error)
@@ -41,6 +48,8 @@ namespace AquaTwin
             { field = "brokerHost"; error = "Enter a broker hostname without wss://, a port or a path."; }
             else if (brokerPort < 1 || brokerPort > 65535)
             { field = "brokerPort"; error = "Port must be between 1 and 65535."; }
+            else if (!MqttTopics.Validate(telemetryTopics))
+            { field = "telemetryTopics"; error = "Enter 1–8 MQTT topic filters, one per line or comma-separated. + matches one level; # must be the final level."; }
             else if (string.IsNullOrWhiteSpace(webSocketPath) || !webSocketPath.StartsWith("/") || webSocketPath.IndexOfAny(new[] { '?', '#', ' ', '\\' }) >= 0)
             { field = "webSocketPath"; error = "Enter a WebSocket path beginning with /, such as /mqtt."; }
             else if (Encoding.UTF8.GetByteCount(username ?? "") > 65535 || (username ?? "").IndexOf('\0') >= 0)
@@ -59,7 +68,7 @@ namespace AquaTwin
         }
         public bool SameConnection(AquaTwinMqttSettingsData other) => other != null &&
             brokerHost == other.brokerHost && brokerPort == other.brokerPort && webSocketPath == other.webSocketPath &&
-            username == other.username && password == other.password;
+            username == other.username && password == other.password && telemetryTopics == other.telemetryTopics;
         private static bool Finite(float value) => !float.IsNaN(value) && !float.IsInfinity(value);
     }
 
@@ -78,6 +87,7 @@ namespace AquaTwin
             if (port != Math.Truncate(port) || port < 1 || port > 65535) throw new FormatException("Invalid broker port.");
             data.brokerPort = (int)port;
             data.webSocketPath = Text("webSocketPath", data.webSocketPath);
+            data.telemetryTopics = Text("telemetryTopics", data.telemetryTopics);
             data.username = Text("username", data.username);
             data.password = Text("password", "");
             // Preserve the user's previous explicit credential-file behaviour when migrating old files.
@@ -99,13 +109,14 @@ namespace AquaTwin
             void Number(string key, double value) { output.Append('"').Append(key).Append("\":").Append(value.ToString("R", CultureInfo.InvariantCulture)).Append(','); }
             void Flag(string key, bool value) { output.Append('"').Append(key).Append("\":").Append(value ? "true" : "false").Append(','); }
             Text("brokerHost", data.brokerHost); Number("brokerPort", data.brokerPort); Text("webSocketPath", data.webSocketPath);
+            Text("telemetryTopics", data.telemetryTopics);
             Text("username", data.username); Text("password", data.rememberPassword ? data.password : "");
             Flag("rememberPassword", data.rememberPassword); Flag("applyToDigitalTwin", data.applyToDigitalTwin);
             Number("legacyWellDepthCm", data.legacyWellDepthCm); Number("staleAfterSeconds", data.staleAfterSeconds);
             Number("reviewTdsPpm", data.reviewTdsPpm); Number("lowWaterPercent", data.lowWaterPercent);
             output.Length--; output.Append('}'); return output.ToString();
         }
-        private static void AppendString(StringBuilder output, string value)
+        internal static void AppendString(StringBuilder output, string value)
         {
             output.Append('"');
             foreach (char character in value)

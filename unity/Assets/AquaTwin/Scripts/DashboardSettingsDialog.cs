@@ -9,9 +9,9 @@ namespace AquaTwin
     public sealed class DashboardSettingsDialog
     {
         private readonly VisualElement overlay, dialog, connectionPage, monitoringPage;
-        private readonly Label error, storage, passwordNote;
+        private readonly Label error, storage, passwordNote, endpointHint;
         private readonly Button connectionTab, monitoringTab, closeButton, cancelButton, saveButton;
-        private readonly TextField host, path, username, password;
+        private readonly TextField host, path, username, password, topics;
         private readonly IntegerField port;
         private readonly Toggle remember, showPassword, applyLive;
         private readonly FloatField calibration, stale, tds, lowWater;
@@ -46,9 +46,13 @@ namespace AquaTwin
             host = TextInput(connectionPage, "Broker hostname", "brokerHost");
             host.tooltip = "Hostname only, without wss:// or a port";
             var endpointRow = Element(connectionPage, "settings-field-row");
-            port = new IntegerField("Secure WebSocket port"); Field(endpointRow, port, "brokerPort");
+            port = new IntegerField("Broker port"); Field(endpointRow, port, "brokerPort");
             path = TextInput(endpointRow, "WebSocket path", "webSocketPath");
-            Label(connectionPage, "The connection uses encrypted WebSockets (wss).", "settings-hint");
+            Label(connectionPage, "HiveMQ Cloud: enter device port 8883 or WebSocket port 8884. The dashboard uses secure WebSockets on 8884 for either choice; your ESP32 keeps using 8883.", "settings-hint");
+            endpointHint = Label(connectionPage, "", "settings-endpoint-preview");
+            host.RegisterValueChangedCallback(_ => UpdateEndpointHint());
+            port.RegisterValueChangedCallback(_ => UpdateEndpointHint());
+            path.RegisterValueChangedCallback(_ => UpdateEndpointHint());
             username = TextInput(connectionPage, "Username", "username");
             password = TextInput(connectionPage, "Password", "password"); password.isPasswordField = true;
             var passwordOptions = Element(connectionPage, "settings-password-options");
@@ -59,15 +63,16 @@ namespace AquaTwin
             remember.RegisterValueChangedCallback(_ => UpdatePasswordNote());
             var stream = Element(connectionPage, "settings-stream-info");
             Label(stream, "WELL STREAMS", "settings-section-label");
-            Label(stream, AquaTwinMqttLocalSettings.FleetTopic, "settings-topic");
-            Label(stream, AquaTwinMqttLocalSettings.LegacyFleetTopic, "settings-topic");
-            Label(stream, "Wells are discovered automatically from these telemetry contracts.", "settings-hint");
+            topics = TextInput(stream, "Subscription topics", "telemetryTopics"); topics.multiline = true;
+            topics.AddToClassList("settings-topics-input");
+            Label(stream, "Enter your sensor’s exact publish topic, or a wildcard filter. One per line; up to 8. Well identity comes from well_id in the JSON. Broker credentials must allow subscribing to each filter.", "settings-hint");
 
             monitoringPage = Element(scroll, "settings-page");
             Label(monitoringPage, "LIVE TELEMETRY", "settings-section-label");
             applyLive = new Toggle("Update the digital twin from live readings");
             applyLive.AddToClassList("settings-toggle"); monitoringPage.Add(applyLive);
             Label(monitoringPage, "Pause incoming live updates while keeping the local demo available.", "settings-hint");
+            Label(monitoringPage, "Last accepted readings are saved on this device and restored as last-known data after restart. New broker messages automatically return those wells to live reporting.", "settings-hint");
             var timing = Element(monitoringPage, "settings-field-row");
             calibration = FloatInput(timing, "Legacy well depth (cm)", "legacyWellDepthCm");
             stale = FloatInput(timing, "Stale after (seconds)", "staleAfterSeconds");
@@ -98,6 +103,7 @@ namespace AquaTwin
         {
             returnFocus = opener;
             host.SetValueWithoutNotify(settings.brokerHost); port.SetValueWithoutNotify(settings.brokerPort);
+            topics.SetValueWithoutNotify(settings.telemetryTopics);
             path.SetValueWithoutNotify(settings.webSocketPath); username.SetValueWithoutNotify(settings.username);
             password.SetValueWithoutNotify(settings.password); password.isPasswordField = true;
             showPassword.SetValueWithoutNotify(false); remember.SetValueWithoutNotify(settings.rememberPassword);
@@ -105,7 +111,7 @@ namespace AquaTwin
             calibration.SetValueWithoutNotify(settings.legacyWellDepthCm); stale.SetValueWithoutNotify(settings.staleAfterSeconds);
             tds.SetValueWithoutNotify(settings.reviewTdsPpm); lowWater.SetValueWithoutNotify(settings.lowWaterPercent);
             storage.text = AquaTwinMqttLocalSettings.StorageDescription;
-            UpdatePasswordNote(); ClearErrors(); ShowPage(true);
+            UpdatePasswordNote(); UpdateEndpointHint(); ClearErrors(); ShowPage(true);
             overlay.style.display = DisplayStyle.Flex;
             host.schedule.Execute(() => { if (IsOpen) host.Focus(); });
         }
@@ -121,14 +127,14 @@ namespace AquaTwin
             var draft = new AquaTwinMqttSettingsData
             {
                 brokerHost = host.value, brokerPort = port.value, webSocketPath = path.value,
-                username = username.value, password = password.value, rememberPassword = remember.value,
+                telemetryTopics = topics.value, username = username.value, password = password.value, rememberPassword = remember.value,
                 applyToDigitalTwin = applyLive.value, legacyWellDepthCm = calibration.value,
                 staleAfterSeconds = stale.value, reviewTdsPpm = tds.value, lowWaterPercent = lowWater.value
             };
             draft.Normalize();
             if (!draft.TryValidate(out string field, out string message))
             {
-                ShowPage(field == "brokerHost" || field == "brokerPort" || field == "webSocketPath" || field == "username" || field == "password");
+                ShowPage(field == "brokerHost" || field == "brokerPort" || field == "webSocketPath" || field == "username" || field == "password" || field == "telemetryTopics");
                 fields[field].AddToClassList("invalid"); fields[field].Focus(); ShowError(message); return;
             }
             message = save(draft);
@@ -148,6 +154,15 @@ namespace AquaTwin
             monitoringPage.style.display = connection ? DisplayStyle.None : DisplayStyle.Flex;
             connectionTab.EnableInClassList("active", connection); monitoringTab.EnableInClassList("active", !connection);
         }
+        private void UpdateEndpointHint()
+        {
+            try
+            {
+                var preview = new AquaTwinMqttSettingsData { brokerHost = host.value.Trim(), brokerPort = port.value, webSocketPath = path.value.Trim() };
+                endpointHint.text = (preview.UsesDevicePort ? "Device port 8883 → dashboard WebSocket port 8884\n" : "Dashboard connection: ") + preview.Endpoint.AbsoluteUri;
+            }
+            catch { endpointHint.text = "Enter a valid hostname, port and WebSocket path to preview the connection."; }
+        }
         private void UpdatePasswordNote()
         {
             passwordNote.text = remember.value
@@ -160,7 +175,7 @@ namespace AquaTwin
             if (evt.keyCode == KeyCode.Escape) { Close(); evt.StopImmediatePropagation(); overlay.panel?.focusController?.IgnoreEvent(evt); return; }
             if (evt.keyCode != KeyCode.Tab) return;
             var order = new List<VisualElement> { closeButton, connectionTab, monitoringTab };
-            if (connectionActive) order.AddRange(new VisualElement[] { host, port, path, username, password, showPassword, remember });
+            if (connectionActive) order.AddRange(new VisualElement[] { host, port, path, username, password, showPassword, remember, topics });
             else order.AddRange(new VisualElement[] { applyLive, calibration, stale, tds, lowWater });
             order.Add(cancelButton); order.Add(saveButton);
             var focused = overlay.panel?.focusController?.focusedElement as VisualElement;

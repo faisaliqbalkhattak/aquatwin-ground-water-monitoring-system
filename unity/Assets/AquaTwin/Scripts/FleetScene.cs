@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Rendering;
@@ -31,6 +31,7 @@ namespace AquaTwin
         public Camera Camera => view;
         public RenderTexture Texture => texture;
         public bool Geographic { get; private set; }
+        public bool EnvelopeIsLastKnown { get; private set; }
         public Vector3 HeadPosition(string id) => nodes.TryGetValue(id, out Node node) ? node.Head.position + Vector3.up * 0.5f : Vector3.zero;
         public string Pick(Vector2 normalized)
         {
@@ -230,8 +231,13 @@ namespace AquaTwin
             var triangles = new int[resolution * resolution * 6];
             int freshCount = 0;
             foreach (var w in fleet.Wells) if (w.IsFresh(now, timeout)) freshCount++;
-            surfaceRenderer.enabled = freshCount > 0;
-            if (freshCount == 0) return;
+            EnvelopeIsLastKnown = freshCount == 0 && fleet.Wells.Count > 0;
+            surfaceRenderer.enabled = fleet.Wells.Count > 0;
+            if (fleet.Wells.Count == 0) return;
+            // Preserve a clearly muted last-known envelope during source pauses.
+            // When current readings exist, only those contribute to the live surface.
+            Tint(surfaceRenderer, EnvelopeIsLastKnown
+                ? new Color(.40f, .49f, .51f, .18f) : new Color(.12f, .70f, .66f, .28f));
             for (int z = 0; z <= resolution; z++)
             for (int x = 0; x <= resolution; x++)
             {
@@ -239,7 +245,7 @@ namespace AquaTwin
                 float sum = 0, height = 0;
                 foreach (var w in fleet.Wells)
                 {
-                    if (!w.IsFresh(now, timeout)) continue;
+                    if (!EnvelopeIsLastKnown && !w.IsFresh(now, timeout)) continue;
                     float weight = 1 / Mathf.Max(.01f, (position - nodes[w.Id].Position).sqrMagnitude);
                     height += (-6 + w.Fill * 6) * weight;
                     sum += weight;

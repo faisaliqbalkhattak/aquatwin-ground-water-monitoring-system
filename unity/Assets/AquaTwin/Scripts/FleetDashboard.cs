@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
@@ -44,6 +44,7 @@ namespace AquaTwin
         private DashboardSettingsDialog settingsDialog;
         private Button settingsButton;
         private Label settingsToast;
+        private VisualElement connectionDiagnostics;
         private float toastUntil;
         public string SelectedId => selected;
         public string Transport => transport;
@@ -63,7 +64,33 @@ namespace AquaTwin
             return instance;
         }
 
-        private void Awake()
+        private void Awake() { InitializeDashboard(); }
+        private void OnEnable()
+        {
+            // Unity calls OnEnable, but not Awake, after an Editor assembly reload.
+            // UI Toolkit controls and managed lookup dictionaries are not serialized.
+            if (root != null && labels.ContainsKey("discovered")) return;
+            var resources = new HashSet<UnityEngine.Object>();
+            foreach (var old in GetComponents<UIDocument>())
+            {
+                if (old.panelSettings != null) resources.Add(old.panelSettings);
+                DestroyImmediate(old);
+            }
+            foreach (var renderer in GetComponentsInChildren<Renderer>(true))
+                foreach (var material in renderer.sharedMaterials) if (material != null) resources.Add(material);
+            foreach (var mesh in GetComponentsInChildren<MeshFilter>(true))
+                if (mesh.sharedMesh != null && mesh.sharedMesh.name == "Schematic water envelope") resources.Add(mesh.sharedMesh);
+            foreach (var camera in GetComponentsInChildren<Camera>(true))
+                if (camera.targetTexture != null) resources.Add(camera.targetTexture);
+            foreach (var old in GetComponents<FleetScene>()) DestroyImmediate(old);
+            // This GameObject and its children belong exclusively to the runtime dashboard.
+            for (int i = transform.childCount - 1; i >= 0; i--) DestroyImmediate(transform.GetChild(i).gameObject);
+            foreach (var resource in resources) if (resource != null) DestroyImmediate(resource);
+            labels.Clear(); pins.Clear(); filtered.Clear();
+            selected = null; knownCount = -1;
+            InitializeDashboard();
+        }
+        private void InitializeDashboard()
         {
             instance = this;
             settings = AquaTwinMqttLocalSettings.Load();
@@ -81,11 +108,40 @@ namespace AquaTwin
 
         public bool ApplyTelemetry(string json, string topic, bool retained, out string error)
         {
+            if (topic != null && !MqttTopics.AnyMatch(settings.SubscriptionTopics, topic))
+            { error = "Message topic is outside the configured subscriptions."; return false; }
             return session.LiveFleet.ApplyJson(json, topic, retained, Time.unscaledTime,
                 DateTimeOffset.UtcNow.ToUnixTimeMilliseconds() / 1000.0,
-                settings.legacyWellDepthCm, false, out error);
+                settings.legacyWellDepthCm, false, out error, subscribedTopic: true);
         }
-        public void SetTransportState(string state, string detail = null) { session.SetConnection(state, detail); nextRefresh = 0; }
+        public void SetTransportState(string state, string detail = null)
+        {
+            if (session.Connection == state && session.ConnectionDetail == detail) return;
+            session.SetConnection(state, detail); nextRefresh = 0;
+        }
+        public void SetTelemetryDelivery(int messagesThisConnection, int rejected) { session.SetDeliveryCounts(messagesThisConnection, rejected); }
+        public int RestoreLastKnown(FleetSnapshotCache cache, string json)
+        {
+            int count = cache.Restore(json, session.LiveFleet, settings.SubscriptionTopics, Time.unscaledTime,
+                DateTimeOffset.UtcNow.ToUnixTimeMilliseconds() / 1000.0, settings.legacyWellDepthCm);
+            nextRefresh = 0; return count;
+        }
+        public void ResetLiveSource()
+        {
+            session.LiveFleet.Clear(); if (!IsDemo) { selected = null; knownCount = -1; }
+            nextRefresh = 0;
+        }
+        public void SetConnectionDiagnostics(string endpoint, string topics, string counts, string error, string activity, string history)
+        {
+            if (!labels.ContainsKey("mqttEndpoint")) return;
+            Set("mqttEndpoint", "ENDPOINT  " + endpoint);
+            Set("mqttTopics", "SUBSCRIPTIONS  " + topics);
+            Set("mqttCounts", counts);
+            Set("mqttActivity", activity);
+            Set("mqttError", string.IsNullOrEmpty(error) ? "No connection or payload errors recorded." : "LAST ISSUE  " + error);
+            labels["mqttError"].EnableInClassList("has-error", !string.IsNullOrEmpty(error));
+            Set("mqttHistory", history);
+        }
         public void StartDemo()
         {
             try
@@ -209,7 +265,22 @@ namespace AquaTwin
             demoButton.AddToClassList("tool"); demoButton.AddToClassList("demo-launch");
             connectionActions.Add(demoButton);
             Action(connectionActions, "Retry HiveMQ", RetryHiveMqtt, "Reload local credentials and retry the broker connection");
+            Action(connectionActions, "Connection details", () =>
+                connectionDiagnostics.style.display = connectionDiagnostics.style.display == DisplayStyle.Flex ? DisplayStyle.None : DisplayStyle.Flex,
+                "Inspect endpoint, subscriptions, message counts and recent connection events");
             KeyText(headerRight, "demoError", "", "demo-error");
+            connectionDiagnostics = Box(root, "mqtt-diagnostics");
+            connectionDiagnostics.style.display = DisplayStyle.None;
+            var diagnosticHead = Box(connectionDiagnostics, "section-head");
+            Text(diagnosticHead, "HiveMQ connection", "section-title");
+            Action(diagnosticHead, "Close", () => connectionDiagnostics.style.display = DisplayStyle.None, "Close connection details");
+            var diagnosticScroll = new ScrollView(ScrollViewMode.Vertical); connectionDiagnostics.Add(diagnosticScroll);
+            KeyText(diagnosticScroll, "mqttEndpoint", "", "mqtt-detail");
+            KeyText(diagnosticScroll, "mqttTopics", "", "mqtt-detail");
+            KeyText(diagnosticScroll, "mqttCounts", "", "mqtt-detail");
+            KeyText(diagnosticScroll, "mqttActivity", "", "mqtt-detail");
+            KeyText(diagnosticScroll, "mqttError", "", "mqtt-error");
+            KeyText(diagnosticScroll, "mqttHistory", "", "mqtt-history");
             demoControls = Box(root, "demo-controls");
             Text(demoControls, "DEMO DATA · LOCAL JSON", "demo-badge");
             KeyText(demoControls, "demoTime", "", "demo-time");
@@ -229,7 +300,7 @@ namespace AquaTwin
             Text(demoControls, "90s loop · samples every 2s · pause lets readings become stale", "demo-help");
 
             var summary = Box(root, "summary");
-            Metric(summary, "discovered", "DISCOVERED WELLS", "0", "Identities received this session");
+            Metric(summary, "discovered", "DISCOVERED WELLS", "0", "Live and last-known well identities");
             Metric(summary, "reporting", "REPORTING NOW", "0", "Fresh telemetry, per well");
             Metric(summary, "attention", "NEEDS ATTENTION", "0", "Fresh wells outside set thresholds");
             Metric(summary, "fill", "MEAN WATER COLUMN", "—", "Unweighted mean · reporting wells", true);
@@ -306,7 +377,7 @@ namespace AquaTwin
             Text(legend, "●  Elevated TDS", "legend-warning");
             Text(legend, "●  Stale / offline", "muted");
             Text(legend, "Relative fill · schematic depth", "muted");
-            Text(center, "Water envelope is an illustrative blend of fresh readings, not a surveyed aquifer surface.", "view-note");
+            KeyText(center, "envelopeNote", "", "view-note");
 
             var inspector = Box(workspace, "inspector");
             var detailHeader = Box(inspector, "section-head");
@@ -355,13 +426,14 @@ namespace AquaTwin
             Set("attention", fresh.Count(w => w.NeedsReview(settings.reviewTdsPpm, settings.lowWaterPercent / 100)).ToString());
             Set("fill", fresh.Count == 0 ? "—" : F(fresh.Average(w => w.Fill) * 100, "0.0") + "%");
             bool connected = transport == "CONNECTED";
-            string state = connected ? "●  HIVEMQ / CONNECTED · ONLINE" : transport == "CONNECTING" ? "●  HIVEMQ / CONNECTING…" : "●  HIVEMQ / OFFLINE · DISCONNECTED";
+            bool progressing = transport == "CONNECTING" || transport == "AUTHENTICATING" || transport == "SUBSCRIBING";
+            string state = connected ? "●  HIVEMQ / BROKER CONNECTED" : progressing ? "●  HIVEMQ / " + transport : "●  HIVEMQ / OFFLINE · DISCONNECTED";
             Set("connection", state);
             labels["connection"].EnableInClassList("offline", transport == "OFFLINE");
-            labels["connection"].EnableInClassList("connecting", transport == "CONNECTING");
-            Set("connectionDetail", connected && session.FreshLiveCount(now, settings.staleAfterSeconds) == 0
-                ? "Authenticated and subscribed; waiting for fresh sensor readings."
-                : session.ConnectionDetail);
+            labels["connection"].EnableInClassList("connecting", progressing);
+            labels["connection"].EnableInClassList("no-telemetry", connected && session.FreshLiveCount(now, settings.staleAfterSeconds) == 0);
+            Set("connectionDetail", session.ConnectionDetail);
+            labels["connectionDetail"].tooltip = session.ConnectionDetail;
             Set("liveDataStatus", session.LiveDataStatus(now, settings.staleAfterSeconds));
             labels["liveDataStatus"].EnableInClassList("no-data", session.FreshLiveCount(now, settings.staleAfterSeconds) == 0);
             // A broker can be reachable without any sensors, or contain only stale/retained
@@ -371,10 +443,13 @@ namespace AquaTwin
             if (IsDemo) Set("demoTime", F(demoPlayhead, "0") + " / " + F(demoDataset.DurationSeconds, "0") + "s" + (demoPaused ? " · PAUSED" : " · REPLAYING"));
             Set("source", IsDemo ? "DEMO DATA  /  LOCAL AQUATWINDEMO.JSON  /  SIMULATED SENSOR READINGS" : settings.applyToDigitalTwin ? "HIVEMQ CLOUD  /  AUTO-DISCOVERY ENABLED" : "HIVEMQ CLOUD  /  TWIN UPDATES PAUSED IN SETTINGS");
             scene.Refresh(Fleet, selected, now, settings.staleAfterSeconds, settings.reviewTdsPpm);
+            Set("envelopeNote", scene.EnvelopeIsLastKnown
+                ? "LAST KNOWN WATER ENVELOPE · muted cached/stale readings · waiting for fresh telemetry. Illustrative, not a surveyed surface."
+                : "Water envelope is an illustrative blend of fresh readings, not a surveyed aquifer surface.");
             Set("layout", scene.Geographic ? "COORDINATE LAYOUT · NORMALIZED EXTENTS" : "SCHEMATIC LAYOUT · NOT GEOGRAPHIC");
             empty.style.display = Fleet.Wells.Count == 0 ? DisplayStyle.Flex : DisplayStyle.None;
             Set("emptyTitle", IsDemo ? "Your demo workspace is ready" : "No sensor data available");
-            Set("emptyMessage", IsDemo ? "Set the demo well count above to explore a network." : !settings.applyToDigitalTwin ? "Live updates are paused in Settings.\nUse Test demo to explore the local dataset." : connected ? "HiveMQ is connected, but no sensor readings have arrived.\nUse Test demo above to explore ten wells from local JSON." : "Use Test demo above to explore ten wells from local JSON.\nHiveMQ connectivity is shown separately in the header.");
+            Set("emptyMessage", IsDemo ? "Set the demo well count above to explore a network." : !settings.applyToDigitalTwin ? "Live updates are paused in Settings.\nUse Test demo to explore the local dataset." : connected ? "Broker connected; no usable sensor readings.\nCheck that the ESP32/Wokwi is running, publishing to this same broker and a subscribed topic.\nOpen Connection details for delivery counts. Test demo remains available." : "Use Test demo above to explore ten wells from local JSON.\nHiveMQ connectivity is shown separately in the header.");
             RefreshList(); RefreshDetails();
             if (knownCount != Fleet.Wells.Count) { RebuildMarkers(); knownCount = Fleet.Wells.Count; }
             PlaceMarkers();
@@ -416,8 +491,10 @@ namespace AquaTwin
         }
         private string Status(WellFleet.Well well)
         {
+            if (well.IsCached) return "●  LAST KNOWN · WAITING FOR LIVE";
             if (!well.ReportedOnline) return "●  OFFLINE";
             if (!well.AgeKnown) return "●  RETAINED / AGE UNKNOWN";
+            if (well.HasOldSourceTime(Time.unscaledTime, settings.staleAfterSeconds)) return "●  RECEIVING · SOURCE TIME OLD";
             if (!well.IsFresh(Time.unscaledTime, settings.staleAfterSeconds)) return "●  STALE · " + Age(well);
             if (well.NeedsReview(settings.reviewTdsPpm, settings.lowWaterPercent / 100)) return "●  REVIEW";
             return well.Demo ? "●  DEMO / REPORTING" : "●  REPORTING";
@@ -449,7 +526,11 @@ namespace AquaTwin
             Set("trendRange", enough ? F(min, "0.0") + " – " + F(max, "0.0") + " cm below sensor" : "Waiting for a second observation");
             Set("trendNote", enough ? "Last " + F(well.History.Last().Time - well.History.First().Time, "0") + "s · depth increases downward" : "History builds from incoming readings.");
             Set("location", well.HasLocation ? well.Latitude.ToString("0.00000", CultureInfo.InvariantCulture) + ", " + well.Longitude.ToString("0.00000", CultureInfo.InvariantCulture) : "Location not supplied · schematic placement");
-            Set("updated", well.AgeKnown ? "Last reading " + Age(well) : "Retained reading · source age unknown");
+            string received = well.IsCached ? "Last known reading restored from this device · not a live sample"
+                : (well.Retained ? "Retained snapshot received " : "Received ") + F(well.ReceiveAge(Time.unscaledTime), "0") + "s ago";
+            string sourceTime = double.IsNaN(well.SourceTimestamp) ? "Source timestamp not supplied"
+                : "Sensor UTC " + DateTimeOffset.FromUnixTimeSeconds((long)well.SourceTimestamp).ToString("yyyy-MM-dd HH:mm:ss", CultureInfo.InvariantCulture) + " · " + Age(well);
+            Set("updated", received + "\n" + sourceTime);
         }
         private void RebuildMarkers()
         {

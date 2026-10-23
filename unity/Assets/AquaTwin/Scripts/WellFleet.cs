@@ -31,11 +31,16 @@ namespace AquaTwin
             public bool ReportedOnline { get; internal set; }
             public bool AgeKnown { get; internal set; }
             public bool Demo { get; internal set; }
+            public bool Retained { get; internal set; }
+            public bool IsCached { get; internal set; }
             public bool UsesLegacyCalibration { get; internal set; }
             public float Fill => Math.Min(1f, Math.Max(0f, ColumnCm / Math.Max(0.1f, DepthCm + ColumnCm)));
             public readonly List<Sample> History = new();
             public float Age(float now) => AgeAtReceipt + Math.Max(0, now - ReceivedAt);
-            public bool IsFresh(float now, float timeout) => ReportedOnline && AgeKnown && Age(now) <= timeout;
+            public float ReceiveAge(float now) => Math.Max(0, now - ReceivedAt);
+            public bool HasOldSourceTime(float now, float timeout) => !IsCached && ReportedOnline && !Retained &&
+                ReceiveAge(now) <= timeout && AgeKnown && Age(now) > timeout;
+            public bool IsFresh(float now, float timeout) => !IsCached && ReportedOnline && AgeKnown && Age(now) <= timeout;
             public bool NeedsReview(float tdsLimit, float lowFill) => Tds > tdsLimit || Fill < lowFill;
         }
 
@@ -54,7 +59,7 @@ namespace AquaTwin
         internal static Dictionary<string, object> ReadJsonObject(string json) => TelemetryJson.Read(json);
 
         public bool ApplyJson(string json, string topic, bool retained, float now, double utcSeconds,
-            float legacyDepthCm, bool demo, out string error)
+            float legacyDepthCm, bool demo, out string error, bool subscribedTopic = false)
         {
             error = null;
             try
@@ -93,7 +98,9 @@ namespace AquaTwin
                     !ValidLocation(latitude, longitude) ||
                     (status != "ONLINE" && status != "OFFLINE")))
                     throw new FormatException("Canonical telemetry requires location, ONLINE/OFFLINE status and Unix timestamp.");
-                if (topic != null && topic != (canonical ? "aquatwin/well/" + id + "/telemetry" : "digitaltwin/" + id + "/sensors"))
+                // Live callers validate configured MQTT subscriptions first. Publisher topic
+                // labels need not repeat the payload's well_id; strict mode remains the default.
+                if (!subscribedTopic && topic != null && topic != (canonical ? "aquatwin/well/" + id + "/telemetry" : "digitaltwin/" + id + "/sensors"))
                     throw new FormatException("Topic identity does not match payload identity.");
                 if (!double.IsNaN(timestamp) && (double.IsInfinity(timestamp) || timestamp < 0 || timestamp > utcSeconds + 300))
                     throw new FormatException("Invalid or future source timestamp (use Unix seconds).");
@@ -120,6 +127,8 @@ namespace AquaTwin
                 well.AgeAtReceipt = double.IsNaN(timestamp) ? 0 : (float)Math.Max(0, utcSeconds - timestamp);
                 well.ReportedOnline = !canonical || status == "ONLINE";
                 well.Demo = demo;
+                well.Retained = retained;
+                well.IsCached = false;
                 well.UsesLegacyCalibration = !canonical;
                 // Retained snapshots are not a newly observed time-series sample.
                 if (!retained && well.ReportedOnline)

@@ -172,3 +172,16 @@ Label { -unity-text-align: middle-left; }
 
 .narrow .settings-field-row > .settings-field { flex-grow: 0; flex-basis: auto; margin-right: 0; }
 .app #unity-text-input { --unity-cursor-color: rgb(255, 255, 255); }
+
+/* Connection diagnostics uses a bounded scroll area so the twin remains usable. */
+.mqtt-diagnostics { flex-shrink: 0; max-height: 230px; margin: 8px 20px 0 20px; padding: 10px 14px; background-color: rgb(14, 30, 39); border-width: 1px; border-color: rgb(49, 90, 91); border-radius: 8px; }
+.mqtt-diagnostics .section-head { margin-bottom: 4px; }
+.mqtt-detail { font-size: 11px; color: rgb(171, 204, 210); white-space: normal; margin-bottom: 5px; }
+.mqtt-error { font-size: 11px; color: rgb(125, 175, 166); white-space: normal; margin: 4px 0; }
+.mqtt-error.has-error { color: rgb(244, 164, 126); }
+.mqtt-history { font-size: 10px; color: rgb(132, 157, 169); white-space: normal; margin-top: 5px; }
+.settings-topics-input .unity-base-field__input { min-height: 65px; }
+.header { height: auto; min-height: 114px; padding-top: 10px; padding-bottom: 10px; }
+
+.connection.no-telemetry { background-color: rgb(46, 42, 24); color: rgb(229, 195, 112); }
+.settings-endpoint-preview { font-size: 10px; color: rgb(116, 219, 194); white-space: normal; margin: 6px 0 12px 0; }

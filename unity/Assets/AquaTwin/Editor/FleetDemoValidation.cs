@@ -33,7 +33,7 @@ namespace AquaTwin.Editor
             Check(!session.IsDemo && session.Connection == "CONNECTING", "startup attempts broker, not demo");
             Check(session.DemoAvailable, "demo remains available during connection attempts");
             session.SetConnection("CONNECTED", "Subscribed");
-            Check(session.DemoAvailable && session.LiveDataStatus(0, 15) == "NO SENSOR DATA RECEIVED", "broker connection alone cannot indicate live sensor data or hide demo");
+            Check(session.DemoAvailable && session.LiveDataStatus(0, 15) == "BROKER CONNECTED · NO SENSOR MESSAGES", "broker connection alone cannot indicate live sensor data or hide demo");
             const string staleReading = "{\"device\":\"stale01\",\"distance_cm\":10,\"tds_ppm\":200}";
             session.LiveFleet.ApplyJson(staleReading, null, false, 0, 1000, 20, false, out _);
             Check(session.DemoAvailable && session.FreshLiveCount(20, 15) == 0 && session.LiveDataStatus(20, 15) == "NO FRESH SENSOR DATA", "all-stale live fleet cannot hide demo or indicate fresh readings");
