@@ -192,19 +192,6 @@ namespace AquaTwin
                 recordedWellDepthCm);
         }
 
-        /// <summary>
-        /// Receives the current cloud schema. Total well depth is derived from
-        /// depth-to-water plus water-column height rather than the old 20 cm demo.
-        /// </summary>
-        public void SetLiveWellData(float depthToWaterCm,
-            float waterColumnHeightCm, float tdsPpm)
-        {
-            float totalDepthCm = Mathf.Max(0.1f,
-                depthToWaterCm + waterColumnHeightCm);
-            ApplyDistanceSensorData(depthToWaterCm, 0f, tdsPpm, PhLevel,
-                totalDepthCm);
-        }
-
         private void ApplyDistanceSensorData(float depthFromTopCm,
             float depletionRateCmPerSecond, float tdsPpm, float ph,
             float calibratedFullDepthCm)

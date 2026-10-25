@@ -1,12 +1,6 @@
-using System;
-using System.Collections.Concurrent;
-using System.Globalization;
+﻿using System;
+using System.Collections.Generic;
 using System.IO;
-using System.Net.WebSockets;
-using System.Text;
-using System.Threading;
-using System.Threading.Tasks;
-using TMPro;
 using UnityEngine;
 
 namespace AquaTwin
@@ -15,556 +9,245 @@ namespace AquaTwin
     [DisallowMultipleComponent]
     public sealed class HiveMqttWellDataSource : MonoBehaviour
     {
-        [Serializable]
-        private sealed class LocationJson
-        {
-            public float lat;
-            public float lng;
-        }
-
-        [Serializable]
-        private sealed class WellTelemetryJson
-        {
-            public string well_id;
-            public LocationJson location;
-            public float depth_to_water_cm;
-            public float water_column_height_cm;
-            public string status;
-            public long timestamp;
-
-            // Legacy fields stay readable while older devices migrate.
-            public string device;
-            public float distance_cm;
-            public float tds_ppm;
-            public float ph;
-        }
-
-        private enum MainThreadEventType
-        {
-            Log,
-            Warning,
-            Error,
-            Connected,
-            Subscribed,
-            Payload,
-            Connecting,
-            Disconnected
-        }
-
-        private readonly struct MainThreadEvent
-        {
-            public readonly MainThreadEventType Type;
-            public readonly string Message;
-
-            public MainThreadEvent(MainThreadEventType type, string message = null)
-            {
-                Type = type;
-                Message = message;
-            }
-        }
-
-        private const float SensorTimeoutSeconds = 10f;
-        private const int ReconnectDelaySeconds = 5;
-        private static readonly Color LiveColor = new(0.36f, 0.88f, 0.62f);
-        private static readonly Color OfflineColor = new(0.95f, 0.43f, 0.38f);
-        private static readonly Color ConnectingColor = new(0.86f, 0.70f, 0.35f);
-
-        private readonly ConcurrentQueue<MainThreadEvent> mainThreadEvents = new();
-        private CancellationTokenSource cancellation;
-        private ClientWebSocket socket;
-        private WellVisualizer wellVisualizer;
-        private TMP_Text connectionStatusText;
+        private MqttSocketTransport socket;
+        private MqttProtocolSession protocol;
+        private FleetDashboard dashboard;
         private AquaTwinMqttSettingsData settings;
-        private float lastValidMessageTime = float.NegativeInfinity;
-        private bool hasReceivedMessage;
-        private bool connectionOpen;
-
-        public static bool LiveModeRequested { get; private set; }
-
-        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
-        private static void ReadModeBeforeSceneLoads()
-        {
-            LiveModeRequested = AquaTwinMqttLocalSettings.Load().mode ==
-                AquaTwinDataMode.LiveMqtt;
-        }
+        private readonly Queue<string> history = new();
+        private string lastError = "", telemetryIssue = "", lastTopic = "—";
+        private float retryAt = float.PositiveInfinity, lastMessageAt = -1, connectedAt;
+        private float nextDiagnostics;
+        private int attempts, received, accepted, rejected, receivedBeforeAttempt, rejectedBeforeAttempt;
+        private bool shuttingDown, suspended;
+        private readonly MqttRecoveryPolicy recovery = new();
+        private FleetSnapshotCache snapshots;
+        private string snapshotKey, snapshotNote = "";
+        private bool snapshotDirty;
+        private float nextSnapshotSave;
+        public static bool LiveModeRequested => true;
 
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
         private static void AutoInstall()
         {
-            if (!LiveModeRequested)
-                return;
-
-            WellVisualizer visualizer = FindFirstObjectByType<WellVisualizer>();
-            if (visualizer != null &&
-                visualizer.GetComponent<HiveMqttWellDataSource>() == null)
-            {
-                visualizer.gameObject.AddComponent<HiveMqttWellDataSource>();
-            }
+            var fleet = FleetDashboard.EnsureInstance();
+            if (fleet.GetComponent<HiveMqttWellDataSource>() == null)
+                fleet.gameObject.AddComponent<HiveMqttWellDataSource>();
         }
-
-        private async void Start()
+        private void OnEnable()
         {
-            wellVisualizer = GetComponent<WellVisualizer>();
-            settings = AquaTwinMqttLocalSettings.Load();
-            FindExistingConnectionStatus();
-            SetConnectionStatus("CONNECTING", ConnectingColor);
-
-            if (string.IsNullOrWhiteSpace(settings.username) ||
-                string.IsNullOrWhiteSpace(settings.password))
-            {
-                Debug.LogError("[MQTT] Username/password missing. Open AquaTwin > MQTT Connection Setup.");
-                SetConnectionStatus("OFFLINE", OfflineColor);
-                return;
-            }
-
-            cancellation = new CancellationTokenSource();
-            Debug.Log("[MQTT] Connecting...");
-            await ConnectSubscribeAndReceiveAsync(cancellation.Token);
+            shuttingDown = false;
+            suspended = false;
+            Application.runInBackground = true;
+            RetryConnection();
         }
-
+        private void OnDisable()
+        {
+            FlushSnapshots(); socket?.Dispose(); socket = null; protocol = null;
+        }
+        private void OnApplicationPause(bool paused)
+        {
+            if (paused) { suspended = true; FlushSnapshots(); socket?.Dispose(); socket = null; }
+            else if (suspended && isActiveAndEnabled && !shuttingDown) { suspended = false; RetryConnection(); }
+        }
+        private void OnApplicationFocus(bool focused)
+        {
+            if (!focused) { FlushSnapshots(); return; }
+            if (isActiveAndEnabled && !shuttingDown && settings != null &&
+                (protocol == null || (protocol.State == "OFFLINE" && !double.IsPositiveInfinity(recovery.RetryAt))))
+                RetryConnection();
+        }
+        public void ApplySettings(AquaTwinMqttSettingsData updated, bool reconnect)
+        { if (reconnect) RetryConnection(); else settings = updated.Copy(); }
+        public void RetryConnection()
+        {
+            if (shuttingDown || suspended) return;
+            socket?.Dispose(); socket = null;
+            settings = AquaTwinMqttLocalSettings.Load();
+            dashboard = FleetDashboard.EnsureInstance();
+            PrepareSnapshots();
+            recovery.Starting(Time.realtimeSinceStartup);
+            retryAt = float.PositiveInfinity;
+            telemetryIssue = "";
+            attempts++;
+            receivedBeforeAttempt = received; rejectedBeforeAttempt = rejected;
+            dashboard.SetTelemetryDelivery(0, 0);
+            protocol = new MqttProtocolSession(settings.username, settings.password,
+                settings.SubscriptionTopics, Time.realtimeSinceStartup);
+            protocol.Status = OnStatus;
+            protocol.Payload = ProcessTelemetryJson;
+            protocol.Send = bytes => socket?.Send(bytes);
+            try
+            {
+                if (!settings.TryValidate(out _, out string error)) { protocol.Fail(error); return; }
+                if (string.IsNullOrWhiteSpace(settings.username) || string.IsNullOrEmpty(settings.password))
+                { protocol.Fail("Credentials are missing. Open Settings and enter your MQTT username and password."); return; }
+                OnStatus("CONNECTING", "Opening " + settings.Endpoint.AbsoluteUri + (settings.UsesDevicePort ? " · device port 8883 mapped to WSS 8884" : "") + " · attempt " + attempts);
+                socket = new MqttSocketTransport(settings.Endpoint);
+            }
+            catch (Exception exception) { protocol.Fail("WebSocket could not start: " + Safe(exception.Message)); }
+        }
         private void Update()
         {
-            while (mainThreadEvents.TryDequeue(out MainThreadEvent queuedEvent))
-                HandleMainThreadEvent(queuedEvent);
-
-            if (connectionOpen && hasReceivedMessage &&
-                Time.unscaledTime - lastValidMessageTime > SensorTimeoutSeconds)
-            {
-                hasReceivedMessage = false;
-                Debug.LogWarning("[MQTT] Sensor timeout; no message received for 10 seconds.");
-                SetConnectionStatus("OFFLINE", OfflineColor);
-            }
-        }
-
-        private async void OnDestroy()
-        {
-            cancellation?.Cancel();
-            ClientWebSocket connection = socket;
-            if (connection == null)
-                return;
-
+            if (protocol == null || shuttingDown || suspended) return;
+            float now = Time.realtimeSinceStartup;
+            dashboard.SetTelemetryDelivery(received - receivedBeforeAttempt, rejected - rejectedBeforeAttempt);
             try
             {
-                if (connection.State == WebSocketState.Open)
+                for (int i = 0; i < 256 && socket != null && socket.Poll(out var item); i++)
                 {
-                    await connection.CloseAsync(WebSocketCloseStatus.NormalClosure,
-                        "Unity Play Mode stopped", CancellationToken.None);
-                }
-            }
-            catch
-            {
-                // Play Mode is already shutting down; no further action is required.
-            }
-            finally
-            {
-                connection.Dispose();
-                if (socket == connection)
-                    socket = null;
-            }
-        }
-
-        private async Task ConnectSubscribeAndReceiveAsync(CancellationToken token)
-        {
-            while (!token.IsCancellationRequested)
-            {
-                ClientWebSocket connection = new();
-                socket = connection;
-                try
-                {
-                    mainThreadEvents.Enqueue(new MainThreadEvent(MainThreadEventType.Connecting));
-                    connection.Options.AddSubProtocol("mqtt");
-
-                    Uri endpoint = new($"wss://{AquaTwinMqttLocalSettings.BrokerHost}:" +
-                        $"{AquaTwinMqttLocalSettings.BrokerPort}{AquaTwinMqttLocalSettings.WebSocketPath}");
-                    await connection.ConnectAsync(endpoint, token);
-                    await SendPacketAsync(connection,
-                        BuildConnectPacket(settings.username, settings.password), token);
-
-                    byte[] connAck = await ReceiveWebSocketMessageAsync(connection, token);
-                    ValidateConnAck(connAck);
-                    connectionOpen = true;
-                    mainThreadEvents.Enqueue(new MainThreadEvent(MainThreadEventType.Connected));
-
-                    await SendPacketAsync(connection,
-                        BuildSubscribePacket(AquaTwinMqttLocalSettings.Topic), token);
-                    byte[] subAck = await ReceiveWebSocketMessageAsync(connection, token);
-                    ValidateSubAck(subAck);
-                    mainThreadEvents.Enqueue(new MainThreadEvent(MainThreadEventType.Subscribed));
-
-                    _ = PingLoopAsync(connection, token);
-                    await ReceiveLoopAsync(connection, token);
-                }
-                catch (OperationCanceledException)
-                {
-                    break;
-                }
-                catch (Exception exception)
-                {
-                    mainThreadEvents.Enqueue(new MainThreadEvent(
-                        MainThreadEventType.Error, "[MQTT] " + exception.Message));
-                }
-                finally
-                {
-                    connectionOpen = false;
-                    if (socket == connection)
-                        socket = null;
-                    connection.Dispose();
-                    mainThreadEvents.Enqueue(new MainThreadEvent(MainThreadEventType.Disconnected));
-                }
-
-                if (!token.IsCancellationRequested)
-                {
-                    mainThreadEvents.Enqueue(new MainThreadEvent(MainThreadEventType.Warning,
-                        $"[MQTT] Retrying in {ReconnectDelaySeconds} seconds..."));
-                    try
+                    if (protocol.State == "OFFLINE") break;
+                    switch (item.Kind)
                     {
-                        await Task.Delay(TimeSpan.FromSeconds(ReconnectDelaySeconds), token);
-                    }
-                    catch (OperationCanceledException)
-                    {
-                        break;
+                        case "open": protocol.Open(now); break;
+                        case "data": protocol.Feed(item.Data, now); break;
+                        case "error": case "close": protocol.Fail(Safe(item.Message)); break;
                     }
                 }
+                protocol.Tick(now);
             }
-        }
-
-        private async Task ReceiveLoopAsync(ClientWebSocket connection, CancellationToken token)
-        {
-            while (!token.IsCancellationRequested && connection.State == WebSocketState.Open)
+            catch (Exception exception) { protocol.Fail("Connection processing failed: " + Safe(exception.Message)); }
+            if (protocol.State == "OFFLINE")
             {
-                byte[] message = await ReceiveWebSocketMessageAsync(connection, token);
-                ParseMqttPackets(message);
+                socket?.Dispose(); socket = null;
+                if (recovery.ShouldRetry(now)) { RetryConnection(); return; }
             }
+            else if (protocol.State == "CONNECTED")
+            {
+                // A silent publisher is not a broken connection. The MQTT protocol
+                // owns PINGREQ/PINGRESP timeouts; reconnect only after a transport failure.
+                string detail = !settings.applyToDigitalTwin ? "MQTT connected · live twin updates are paused in Settings."
+                    : !string.IsNullOrEmpty(telemetryIssue) ? telemetryIssue
+                    : received > receivedBeforeAttempt ? "Receiving sensor messages · " + accepted + " accepted · last arrival " + Mathf.FloorToInt(now - lastMessageAt) + "s ago"
+                    : now - connectedAt >= 15 ? "Broker connection healthy; no sensor publications received. Waiting without reconnecting. Check the running publisher, broker and topic."
+                    : "Authenticated and subscribed · waiting for sensor messages";
+                dashboard.SetTransportState("CONNECTED", detail);
+            }
+            if (snapshotDirty && now >= nextSnapshotSave) FlushSnapshots();
+            if (now < nextDiagnostics) return;
+            nextDiagnostics = now + .5f;
+            string activity = protocol.State == "CONNECTED" && received == receivedBeforeAttempt
+                ? "Broker authenticated and subscribed · no messages this connection (" + Mathf.FloorToInt(now - connectedAt) + "s). Ensure the publisher is running, uses this same broker and publishes to a subscribed topic."
+                : protocol.Detail;
+            string countdown = float.IsPositiveInfinity(retryAt) ? "Manual retry / Save & apply"
+                : "Retry in " + Mathf.Max(0, Mathf.CeilToInt(retryAt - now)) + "s";
+            dashboard.SetConnectionDiagnostics(settings.Endpoint.AbsoluteUri,
+                string.Join(" · ", settings.SubscriptionTopics),
+                "Attempt " + attempts + "   |   This connection " + (received - receivedBeforeAttempt) + " messages   |   Session received " + received + "   Accepted " + accepted + "   Rejected " + rejected +
+                "   |   Keep-alive replies " + protocol.PingResponses + "   |   Last topic: " + lastTopic + (lastMessageAt < 0 ? "" : "   |   Last message " + Mathf.FloorToInt(now - lastMessageAt) + "s ago"),
+                lastError, (protocol.State == "OFFLINE" ? countdown : activity) + (string.IsNullOrEmpty(snapshotNote) ? "" : "\n" + snapshotNote),
+                string.Join("\n", history.ToArray()));
         }
-
-        private async Task PingLoopAsync(ClientWebSocket connection, CancellationToken token)
+        private void OnStatus(string state, string detail)
         {
+            detail = Safe(detail);
+            nextDiagnostics = 0;
+            AddHistory(state + " · " + detail);
+            if (state == "CONNECTED") { connectedAt = Time.realtimeSinceStartup; recovery.Connected(connectedAt); }
+            if (state == "OFFLINE")
+            {
+                lastError = detail;
+                recovery.Failed(detail, Time.realtimeSinceStartup);
+                retryAt = (float)recovery.RetryAt;
+                Debug.LogWarning("[AquaTwin MQTT] " + detail);
+            }
+            dashboard?.SetTransportState(state, detail);
+        }
+        private void ProcessTelemetryJson(string json, string topic, bool retained)
+        {
+            received++; lastMessageAt = Time.realtimeSinceStartup; lastTopic = topic;
+            recovery.Received(lastMessageAt);
+            if (!settings.applyToDigitalTwin) return;
+            if (!dashboard.ApplyTelemetry(json, topic, retained, out string error))
+            {
+                rejected++; telemetryIssue = "Message rejected on " + topic + ": " + Safe(error);
+                lastError = telemetryIssue; AddHistory(telemetryIssue); return;
+            }
+            accepted++;
+            int previousCount = snapshots?.Count ?? 0;
+            snapshots?.Remember(json, topic); snapshotDirty = true;
+            // Persist discovery immediately, including multiple wells arriving in the same frame.
+            if ((snapshots?.Count ?? 0) > previousCount || Time.realtimeSinceStartup >= nextSnapshotSave) FlushSnapshots();
+            // Keep source freshness separate from broker connectivity, including retained snapshots.
+            var fields = WellFleet.ReadJsonObject(json);
+            double timestamp = fields.TryGetValue("timestamp", out var value) && value is double number ? number : double.NaN;
+            double age = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds() / 1000.0 - timestamp;
+            telemetryIssue = !double.IsNaN(age) && age > settings.staleAfterSeconds
+                ? "Message accepted, but its sensor timestamp is " + Math.Floor(age) + "s old. Check the sensor clock; the well is shown as stale."
+                : "";
+            if (!string.IsNullOrEmpty(telemetryIssue)) lastError = telemetryIssue;
+            else if (lastError.StartsWith("Message rejected") || lastError.StartsWith("Message accepted")) lastError = "";
+        }
+        private void PrepareSnapshots()
+        {
+            string scope = settings.Endpoint.AbsoluteUri + "|" + settings.username;
+            if (snapshots != null && snapshots.Scope == scope) return;
+            bool changedBroker = snapshots != null;
+            FlushSnapshots(); snapshots = new FleetSnapshotCache(scope);
+            snapshotKey = "AquaTwin.LastKnown.v1." + Hash128.Compute(scope);
+            snapshotDirty = false;
+            if (changedBroker) dashboard.ResetLiveSource();
             try
             {
-                while (!token.IsCancellationRequested && connection.State == WebSocketState.Open)
-                {
-                    await Task.Delay(TimeSpan.FromSeconds(15), token);
-                    if (connection.State == WebSocketState.Open)
-                        await SendPacketAsync(connection, new byte[] { 0xC0, 0x00 }, token);
-                }
+                int restored = dashboard.RestoreLastKnown(snapshots, ReadSnapshot());
+                snapshotNote = restored > 0 ? restored + " last-known well reading(s) restored. They become live only after a new broker message." : "No last-known readings saved yet.";
+                AddHistory("CACHE · " + snapshotNote);
             }
-            catch (OperationCanceledException)
-            {
-            }
-            catch (Exception exception)
-            {
-                mainThreadEvents.Enqueue(new MainThreadEvent(
-                    MainThreadEventType.Warning, "[MQTT] Keep-alive failed: " + exception.Message));
-            }
+            catch (Exception exception) { SnapshotFailure("restore", exception); }
         }
-
-        private static async Task SendPacketAsync(ClientWebSocket connection,
-            byte[] packet, CancellationToken token)
+        private void FlushSnapshots()
         {
-            await connection.SendAsync(new ArraySegment<byte>(packet),
-                WebSocketMessageType.Binary, true, token);
-        }
-
-        private static async Task<byte[]> ReceiveWebSocketMessageAsync(
-            ClientWebSocket connection, CancellationToken token)
-        {
-            byte[] buffer = new byte[8192];
-            using MemoryStream stream = new();
-            WebSocketReceiveResult result;
-            do
-            {
-                result = await connection.ReceiveAsync(new ArraySegment<byte>(buffer), token);
-                if (result.MessageType == WebSocketMessageType.Close)
-                    throw new IOException("Broker closed the WebSocket connection.");
-                if (result.MessageType != WebSocketMessageType.Binary)
-                    continue;
-                stream.Write(buffer, 0, result.Count);
-            }
-            while (!result.EndOfMessage);
-            return stream.ToArray();
-        }
-
-        private void ParseMqttPackets(byte[] bytes)
-        {
-            int offset = 0;
-            while (offset < bytes.Length)
-            {
-                byte header = bytes[offset++];
-                int remainingLength = DecodeRemainingLength(bytes, ref offset);
-                if (remainingLength < 0 || offset + remainingLength > bytes.Length)
-                    throw new InvalidDataException("Malformed MQTT packet length.");
-
-                int packetType = header >> 4;
-                if (packetType == 3)
-                    ParsePublishPacket(header, bytes, offset, remainingLength);
-                offset += remainingLength;
-            }
-        }
-
-        private void ParsePublishPacket(byte header, byte[] bytes, int offset, int length)
-        {
-            int end = offset + length;
-            if (offset + 2 > end)
-                throw new InvalidDataException("Malformed MQTT PUBLISH packet.");
-
-            int topicLength = (bytes[offset] << 8) | bytes[offset + 1];
-            offset += 2;
-            if (offset + topicLength > end)
-                throw new InvalidDataException("Malformed MQTT topic.");
-
-            string topic = Encoding.UTF8.GetString(bytes, offset, topicLength);
-            offset += topicLength;
-            int qos = (header >> 1) & 0x03;
-            if (qos > 0)
-                offset += 2;
-            if (offset > end)
-                throw new InvalidDataException("Malformed MQTT packet identifier.");
-
-            if (topic != AquaTwinMqttLocalSettings.Topic)
-                return;
-
-            string payload = Encoding.UTF8.GetString(bytes, offset, end - offset);
-            mainThreadEvents.Enqueue(new MainThreadEvent(MainThreadEventType.Payload, payload));
-        }
-
-        private void HandleMainThreadEvent(MainThreadEvent queuedEvent)
-        {
-            switch (queuedEvent.Type)
-            {
-                case MainThreadEventType.Log:
-                    Debug.Log(queuedEvent.Message);
-                    break;
-                case MainThreadEventType.Warning:
-                    Debug.LogWarning(queuedEvent.Message);
-                    break;
-                case MainThreadEventType.Error:
-                    Debug.LogError(queuedEvent.Message);
-                    SetConnectionStatus("OFFLINE", OfflineColor);
-                    break;
-                case MainThreadEventType.Connected:
-                    Debug.Log("[MQTT] Connected");
-                    break;
-                case MainThreadEventType.Subscribed:
-                    Debug.Log("[MQTT] Subscribed:\n" + AquaTwinMqttLocalSettings.Topic);
-                    break;
-                case MainThreadEventType.Payload:
-                    ProcessTelemetryJson(queuedEvent.Message);
-                    break;
-                case MainThreadEventType.Connecting:
-                    Debug.Log("[MQTT] Connecting...");
-                    SetConnectionStatus("CONNECTING", ConnectingColor);
-                    break;
-                case MainThreadEventType.Disconnected:
-                    SetConnectionStatus("OFFLINE", OfflineColor);
-                    break;
-            }
-        }
-
-        private void ProcessTelemetryJson(string json)
-        {
-            Debug.Log("[MQTT] Message received");
+            if (!snapshotDirty || snapshots == null || string.IsNullOrEmpty(snapshotKey)) return;
             try
             {
-                WellTelemetryJson telemetry = JsonUtility.FromJson<WellTelemetryJson>(json);
-                if (telemetry == null)
-                    throw new FormatException("JSON could not be parsed.");
-
-                if (ContainsCurrentRequiredFields(json))
-                {
-                    if (string.IsNullOrWhiteSpace(telemetry.well_id) ||
-                        string.IsNullOrWhiteSpace(telemetry.status) || telemetry.location == null ||
-                        !IsFinite(telemetry.location.lat) || !IsFinite(telemetry.location.lng) ||
-                        telemetry.location.lat < -90f || telemetry.location.lat > 90f ||
-                        telemetry.location.lng < -180f || telemetry.location.lng > 180f ||
-                        !IsFinite(telemetry.depth_to_water_cm) ||
-                        !IsFinite(telemetry.water_column_height_cm) ||
-                        !IsFinite(telemetry.tds_ppm) || telemetry.depth_to_water_cm < 0f ||
-                        telemetry.water_column_height_cm < 0f || telemetry.tds_ppm < 0f ||
-                        telemetry.timestamp < 0)
-                    {
-                        throw new FormatException("JSON contains invalid well telemetry values.");
-                    }
-
-                    Debug.Log(string.Format(CultureInfo.InvariantCulture,
-                        "well_id = {0}\nlocation = {1:F6},{2:F6}\n" +
-                        "depth_to_water_cm = {3:F2}\nwater_column_height_cm = {4:F2}\n" +
-                        "tds_ppm = {5:F1}\nstatus = {6}\ntimestamp = {7}",
-                        telemetry.well_id, telemetry.location.lat, telemetry.location.lng,
-                        telemetry.depth_to_water_cm, telemetry.water_column_height_cm,
-                        telemetry.tds_ppm, telemetry.status, telemetry.timestamp));
-
-                    if (settings.applyToDigitalTwin && wellVisualizer != null)
-                    {
-                        wellVisualizer.SetLiveWellData(telemetry.depth_to_water_cm,
-                            telemetry.water_column_height_cm, telemetry.tds_ppm);
-                    }
-                }
-                else if (ContainsLegacyRequiredFields(json))
-                {
-                    if (string.IsNullOrWhiteSpace(telemetry.device) ||
-                        !IsFinite(telemetry.distance_cm) || !IsFinite(telemetry.tds_ppm) ||
-                        !IsFinite(telemetry.ph))
-                    {
-                        throw new FormatException("Legacy JSON contains invalid sensor values.");
-                    }
-
-                    Debug.LogWarning("[MQTT] Legacy payload received; update its firmware schema.");
-                    if (settings.applyToDigitalTwin && wellVisualizer != null)
-                    {
-                        wellVisualizer.SetLiveSensorData(
-                            telemetry.distance_cm, telemetry.tds_ppm, telemetry.ph);
-                    }
-                }
-                else
-                {
-                    throw new FormatException("JSON is missing required AquaTwin fields.");
-                }
-
-                lastValidMessageTime = Time.unscaledTime;
-                hasReceivedMessage = true;
-                SetConnectionStatus("LIVE", LiveColor);
+                string json = snapshots.Encode();
+                // Reserve space for settings within WebGL's browser PlayerPrefs quota.
+                if (System.Text.Encoding.UTF8.GetByteCount(json) > 512 * 1024)
+                { snapshotNote = "Live readings are available, but this fleet exceeds the local snapshot storage budget."; return; }
+                WriteSnapshot(json); snapshotDirty = false;
+                snapshotNote = snapshots.Count + " last-known well reading(s) saved for restart recovery.";
             }
-            catch (Exception exception)
-            {
-                Debug.LogWarning("[MQTT] Ignored malformed message: " + exception.Message);
-            }
+            catch (Exception exception) { SnapshotFailure("save", exception); }
+            finally { nextSnapshotSave = Time.realtimeSinceStartup + 5; }
         }
-
-        private static bool ContainsCurrentRequiredFields(string json)
+        private string SnapshotPath => Path.Combine(Path.GetDirectoryName(AquaTwinMqttLocalSettings.FilePath), snapshotKey + ".json");
+        private string ReadSnapshot()
         {
-            return !string.IsNullOrWhiteSpace(json) &&
-                json.Contains("\"well_id\"") &&
-                json.Contains("\"location\"") &&
-                json.Contains("\"lat\"") &&
-                json.Contains("\"lng\"") &&
-                json.Contains("\"depth_to_water_cm\"") &&
-                json.Contains("\"water_column_height_cm\"") &&
-                json.Contains("\"tds_ppm\"") &&
-                json.Contains("\"status\"") &&
-                json.Contains("\"timestamp\"");
+#if UNITY_WEBGL && !UNITY_EDITOR
+            return PlayerPrefs.GetString(snapshotKey, "");
+#else
+            // Project/device file storage is independent of Unity Editor PlayerPrefs registration.
+            if (File.Exists(SnapshotPath)) return File.ReadAllText(SnapshotPath);
+            string legacy = PlayerPrefs.GetString(snapshotKey, "");
+            if (!string.IsNullOrEmpty(legacy)) AquaTwinSettingsFileStore.WriteAtomic(SnapshotPath, legacy);
+            return legacy;
+#endif
         }
-
-        private static bool ContainsLegacyRequiredFields(string json)
+        private void WriteSnapshot(string json)
         {
-            return !string.IsNullOrWhiteSpace(json) &&
-                json.Contains("\"device\"") &&
-                json.Contains("\"distance_cm\"") &&
-                json.Contains("\"tds_ppm\"") &&
-                json.Contains("\"ph\"");
+#if UNITY_WEBGL && !UNITY_EDITOR
+            PlayerPrefs.SetString(snapshotKey, json); PlayerPrefs.Save();
+#else
+            AquaTwinSettingsFileStore.WriteAtomic(SnapshotPath, json);
+#endif
         }
-
-        private static bool IsFinite(float value) =>
-            !float.IsNaN(value) && !float.IsInfinity(value);
-
-        private void FindExistingConnectionStatus()
+        private void SnapshotFailure(string operation, Exception exception)
         {
-            TMP_Text[] labels = FindObjectsByType<TMP_Text>(
-                FindObjectsInactive.Include, FindObjectsSortMode.None);
-            foreach (TMP_Text label in labels)
-            {
-                if (label.name == "Connection")
-                {
-                    connectionStatusText = label;
-                    break;
-                }
-            }
+            snapshotNote = "Last-known cache " + operation + " failed: " + Safe(exception.Message);
+            AddHistory("CACHE ERROR · " + snapshotNote);
+            Debug.LogWarning("[AquaTwin] " + snapshotNote);
         }
-
-        private void SetConnectionStatus(string state, Color color)
+        private void OnApplicationQuit() { shuttingDown = true; FlushSnapshots(); }
+        private string Safe(string text)
         {
-            if (connectionStatusText == null)
-                FindExistingConnectionStatus();
-            if (connectionStatusText == null)
-                return;
-
-            connectionStatusText.text = "●   " + state;
-            connectionStatusText.color = color;
+            text ??= "Connection failed";
+            if (!string.IsNullOrEmpty(settings?.password)) text = text.Replace(settings.password, "[redacted]");
+            return text.Length > 700 ? text.Substring(0, 700) : text;
         }
-
-        private static byte[] BuildConnectPacket(string username, string password)
+        private void AddHistory(string text)
         {
-            using MemoryStream body = new();
-            WriteMqttString(body, "MQTT");
-            body.WriteByte(0x04);
-            body.WriteByte(0xC2);
-            body.WriteByte(0x00);
-            body.WriteByte(0x1E);
-            WriteMqttString(body, "AquaTwinUnity-" + Guid.NewGuid().ToString("N")[..12]);
-            WriteMqttString(body, username);
-            WriteMqttString(body, password);
-            return AddFixedHeader(0x10, body.ToArray());
+            if (history.Count >= 12) history.Dequeue();
+            history.Enqueue(DateTime.Now.ToString("HH:mm:ss") + "  " + Safe(text));
         }
-
-        private static byte[] BuildSubscribePacket(string topic)
-        {
-            using MemoryStream body = new();
-            body.WriteByte(0x00);
-            body.WriteByte(0x01);
-            WriteMqttString(body, topic);
-            body.WriteByte(0x00);
-            return AddFixedHeader(0x82, body.ToArray());
-        }
-
-        private static byte[] AddFixedHeader(byte header, byte[] body)
-        {
-            using MemoryStream packet = new();
-            packet.WriteByte(header);
-            WriteRemainingLength(packet, body.Length);
-            packet.Write(body, 0, body.Length);
-            return packet.ToArray();
-        }
-
-        private static void WriteMqttString(Stream stream, string value)
-        {
-            byte[] bytes = Encoding.UTF8.GetBytes(value ?? string.Empty);
-            stream.WriteByte((byte)(bytes.Length >> 8));
-            stream.WriteByte((byte)bytes.Length);
-            stream.Write(bytes, 0, bytes.Length);
-        }
-
-        private static void WriteRemainingLength(Stream stream, int length)
-        {
-            do
-            {
-                int encodedByte = length % 128;
-                length /= 128;
-                if (length > 0)
-                    encodedByte |= 128;
-                stream.WriteByte((byte)encodedByte);
-            }
-            while (length > 0);
-        }
-
-        private static int DecodeRemainingLength(byte[] bytes, ref int offset)
-        {
-            int multiplier = 1;
-            int value = 0;
-            byte encoded;
-            do
-            {
-                if (offset >= bytes.Length || multiplier > 128 * 128 * 128)
-                    return -1;
-                encoded = bytes[offset++];
-                value += (encoded & 127) * multiplier;
-                multiplier *= 128;
-            }
-            while ((encoded & 128) != 0);
-            return value;
-        }
-
-        private static void ValidateConnAck(byte[] packet)
-        {
-            if (packet.Length < 4 || (packet[0] >> 4) != 2)
-                throw new InvalidDataException("Broker returned an invalid CONNACK packet.");
-            if (packet[3] != 0)
-                throw new UnauthorizedAccessException(
-                    "Broker rejected the MQTT connection (CONNACK " + packet[3] + ").");
-        }
-
-        private static void ValidateSubAck(byte[] packet)
-        {
-            if (packet.Length < 5 || (packet[0] >> 4) != 9 || packet[^1] == 0x80)
-                throw new InvalidDataException("Broker rejected the topic subscription.");
-        }
+        private void OnDestroy() { shuttingDown = true; FlushSnapshots(); socket?.Dispose(); socket = null; }
     }
 }

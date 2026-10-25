@@ -92,6 +92,8 @@ namespace AquaTwin
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
         private static void AutoInstall()
         {
+            // The fleet experience owns simulation; retain this component for legacy scenes.
+            if (FleetDashboard.EnsureInstance() != null) return;
             WellVisualizer visualizer = FindFirstObjectByType<WellVisualizer>();
             if (visualizer != null && visualizer.GetComponent<RecordedTelemetryPlayback>() == null)
             {
@@ -102,6 +104,11 @@ namespace AquaTwin
 
         private void Start()
         {
+            if (FindFirstObjectByType<FleetDashboard>() != null)
+            {
+                enabled = false;
+                return;
+            }
             if (HiveMqttWellDataSource.LiveModeRequested)
             {
                 isPlaying = false;

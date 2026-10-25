@@ -4,66 +4,85 @@ using UnityEngine;
 
 namespace AquaTwin
 {
-    public enum AquaTwinDataMode
-    {
-        Simulation,
-        LiveMqtt
-    }
-
-    [Serializable]
-    public sealed class AquaTwinMqttSettingsData
-    {
-        public AquaTwinDataMode mode = AquaTwinDataMode.Simulation;
-        public string username = string.Empty;
-        public string password = string.Empty;
-        public bool applyToDigitalTwin = true;
-    }
-
     public static class AquaTwinMqttLocalSettings
     {
         public const string BrokerHost =
-            "6a3cba0faab347c9a1a0c5afcfbd3ca3.s1.eu.hivemq.cloud";
+            "1651fcbe155949e089f34c9f4ce8b612.s1.eu.hivemq.cloud";
         public const int BrokerPort = 8884;
         public const string WebSocketPath = "/mqtt";
         public const string Topic = "digitaltwin/well01/sensors";
+        public const string LegacyFleetTopic = "digitaltwin/+/sensors";
+        public const string FleetTopic = "aquatwin/well/+/telemetry";
+
+        private const string BrowserSettingsKey = "AquaTwin.Settings.v1";
+        private static AquaTwinMqttSettingsData sessionSettings;
+
+        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
+        private static void ResetSession() { sessionSettings = null; }
 
         public static string FilePath
         {
             get
             {
-                string projectRoot = Directory.GetParent(Application.dataPath)?.FullName
-                    ?? Application.dataPath;
-                return Path.Combine(projectRoot, "UserSettings",
-                    "AquaTwinMqttCredentials.json");
+#if UNITY_EDITOR
+                string projectRoot = Directory.GetParent(Application.dataPath)?.FullName ?? Application.dataPath;
+                return Path.Combine(projectRoot, "UserSettings", "AquaTwinMqttCredentials.json");
+#else
+                return Path.Combine(Application.persistentDataPath, "AquaTwinSettings.json");
+#endif
+            }
+        }
+
+        public static string StorageDescription
+        {
+            get
+            {
+#if UNITY_WEBGL && !UNITY_EDITOR
+                return "Saved in this browser for this site";
+#elif UNITY_EDITOR
+                return "Saved for this Unity project";
+#else
+                return "Saved on this device";
+#endif
             }
         }
 
         public static AquaTwinMqttSettingsData Load()
         {
+            if (sessionSettings != null) return sessionSettings.Copy();
             try
             {
-                if (!File.Exists(FilePath))
-                    return new AquaTwinMqttSettingsData();
-
-                AquaTwinMqttSettingsData settings =
-                    JsonUtility.FromJson<AquaTwinMqttSettingsData>(File.ReadAllText(FilePath));
-                return settings ?? new AquaTwinMqttSettingsData();
+#if UNITY_WEBGL && !UNITY_EDITOR
+                string json = PlayerPrefs.GetString(BrowserSettingsKey, "");
+#else
+                string json = File.Exists(FilePath) ? File.ReadAllText(FilePath) : "";
+#endif
+                var settings = string.IsNullOrWhiteSpace(json) ? new AquaTwinMqttSettingsData() : AquaTwinSettingsCodec.Decode(json);
+                if (!settings.TryValidate(out _, out _)) throw new FormatException("Stored settings contain invalid values.");
+                sessionSettings = settings;
             }
-            catch (Exception exception)
+            catch
             {
-                Debug.LogWarning("[MQTT] Could not read local settings: " + exception.Message);
-                return new AquaTwinMqttSettingsData();
+                Debug.LogWarning("[AquaTwin] Could not load saved settings; using defaults.");
+                sessionSettings = new AquaTwinMqttSettingsData();
             }
+            return sessionSettings.Copy();
         }
 
-#if UNITY_EDITOR
         public static void Save(AquaTwinMqttSettingsData settings)
         {
-            string directory = Path.GetDirectoryName(FilePath);
-            if (!string.IsNullOrEmpty(directory))
-                Directory.CreateDirectory(directory);
-            File.WriteAllText(FilePath, JsonUtility.ToJson(settings, true));
-        }
+            var validated = settings.Copy();
+            validated.Normalize();
+            if (!validated.TryValidate(out _, out string error)) throw new ArgumentException(error);
+            string json = AquaTwinSettingsCodec.EncodeForStorage(validated);
+#if UNITY_WEBGL && !UNITY_EDITOR
+            PlayerPrefs.SetString(BrowserSettingsKey, json);
+            PlayerPrefs.Save();
+#else
+            AquaTwinSettingsFileStore.WriteAtomic(FilePath, json);
 #endif
+            // An unremembered password is available for this session, but is omitted from storage.
+            sessionSettings = validated;
+        }
     }
 }
