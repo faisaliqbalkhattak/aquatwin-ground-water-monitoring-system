@@ -1,24 +1,34 @@
 # AquaTwin Cloud Architecture
 
-AquaTwin uses HiveMQ Cloud only as the secure telemetry broker. The Python
-backend is the sole downstream MQTT consumer; Unity consumes the Python REST or
-WebSocket API and never stores HiveMQ credentials.
+AquaTwin uses HiveMQ Cloud only as the secure telemetry broker. There is no
+separate backend: the Unity dashboard and the `cloud_monitor` terminal tool are
+the downstream MQTT consumers, and Unity renders its own visualization directly
+from the broker.
 
 ```text
-ESP32/Wokwi nodes
+ESP32 / Wokwi nodes
   -> MQTT TLS 8883
   -> HiveMQ Cloud: aquatwin/well/{well_id}/telemetry
-  -> Python backend subscription: aquatwin/well/+/telemetry
-  -> SQLite + NumPy IDW
-  -> REST / WebSocket on port 8000
-  -> Unity and browser dashboard
+  -> Unity dashboard over secure WebSocket 8884 (own UI)
+  -> cloud_monitor terminal monitor (subscriber) via cloud_monitor/
 ```
+
+## Data pipeline roles
+
+- `firmware/sketch.ino`: publishes one contract on one topic family, whether
+  readings come from hardware or from the built-in simulated wells.
+- `unity/`: connects directly to HiveMQ (WSS 8884), discovers wells at runtime
+  and renders the 3D digital twin; see `unity/README.md`.
+- `cloud_monitor/`: validates every payload (`telemetry.py`), keeps
+ thread-safe
+ monitoring state (`state.py`) and renders a terminal dashboard (`dashboard.py`);
+  see the commands in [`../CLOUD_SETUP.md`](../CLOUD_SETUP.md).
 
 ## HiveMQ access
 
 Create broker credentials under HiveMQ Cloud **Access Management**. Grant the
-ESP32/Wokwi credential publish permission for its well topics, and grant the
-backend credential subscribe permission for `aquatwin/well/+/telemetry`.
+firmware credential publish permission for its well topics, and grant the
+subscriber credential subscribe permission for `aquatwin/well/+/telemetry`.
 
 Copy `.env.example` to `.env` and fill in the private values locally:
 
@@ -30,15 +40,8 @@ MQTT_PASSWORD=<private password>
 MQTT_TOPIC=aquatwin/well/+/telemetry
 ```
 
-The backend uses the operating system CA store, requires a valid certificate,
+The monitor uses the operating system CA store, requires a valid certificate,
 verifies the hostname, and enforces TLS 1.2 or newer.
 
-## Run
-
-```bash
-source .venv/bin/activate
-python -m aquatwin_backend
-```
-
-Open `http://127.0.0.1:8000`. See [`../CLOUD_SETUP.md`](../CLOUD_SETUP.md) for
-the continuous multi-well test and verification endpoints.
+Never commit real passwords. Keep them only in `.env` (monitor) or in local,
+uncommitted sketch edits (firmware).

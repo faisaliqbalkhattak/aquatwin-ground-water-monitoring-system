@@ -1,14 +1,14 @@
-# AquaTwin HiveMQ and Dynamic Backend Test
+# AquaTwin HiveMQ Cloud Setup
 
 ## Frozen contract
 
-- HiveMQ TLS port: `8883`
+- HiveMQ device port (MQTT over TLS): `8883`
+- HiveMQ dashboard port (MQTT over secure WebSocket): `8884`, path `/mqtt`
 - Publish topic: `aquatwin/well/{well_id}/telemetry`
-- Backend subscription: `aquatwin/well/+/telemetry`
-- Local API/dashboard: `http://127.0.0.1:8000`
+- Subscription topic filter: `aquatwin/well/+/telemetry`
 
-Credentials stay in the Git-ignored `.env` file. Never put real passwords in
-source, documentation, screenshots, commits, or chat.
+The payload `well_id` must match the topic's `{well_id}` segment. Firmware, the
+Unity dashboard and the cloud monitor all use this one contract:
 
 ```json
 {
@@ -22,46 +22,48 @@ source, documentation, screenshots, commits, or chat.
 }
 ```
 
-The payload `well_id` must match the topic's `{well_id}` segment.
+Replace `timestamp` with the current Unix time in seconds when publishing.
+Credentials stay out of Git: passwords live in `.env` (monitor) and in local
+sketch edits (firmware). Never put real passwords in source, documentation,
+screenshots, commits, or chat.
 
-## Fully dynamic test
+## HiveMQ Cloud access management
 
-Terminal 1 starts secure MQTT ingestion, SQLite history, IDW calculation, API,
-WebSocket, and the browser dashboard:
+1. In HiveMQ Cloud **Access Management**, create one credential for the
+   ESP32/Wokwi publisher with permission to publish to
+   `aquatwin/well/{well_id}/telemetry`.
+2. Create a second credential for subscribers (Unity dashboard and
+   `cloud_monitor`) with permission to subscribe to `aquatwin/well/+/telemetry`.
+3. Give every physical or simulated node its own unique well identity. Each
+   topic segment must match the payload's `well_id`; publishing every node as
+   the same identity still represents one well.
+
+## Firmware (ESP32 / Wokwi)
+
+`firmware/sketch.ino` publishes simulated and live readings to
+`aquatwin/well/{well_id}/telemetry`. Set the WiFi SSID/password and the HiveMQ
+host, username and password in the configuration block at the top of the file.
+The committed file contains placeholders only; fill in real values locally and
+never commit them.
+
+## Unity dashboard
+
+The Unity project (`unity/`) connects directly to HiveMQ over secure WebSocket
+port `8884` and renders the well dashboard itself. Open the gear > SETTINGS
+dialog in Play Mode and enter the subscriber credentials saved from Access
+Management. Unity never needs a separate backend or API.
+
+## Cloud monitor
+
+The monitor subscribes with the subscriber credential:
 
 ```bash
-source .venv/bin/activate
-python -m aquatwin_backend
+cp .env.example .env        # fill in MQTT_HOST, MQTT_USERNAME, MQTT_PASSWORD
+python -m cloud_monitor --env-file .env
 ```
 
-Open `http://127.0.0.1:8000`.
-
-Terminal 2 continuously publishes five clearly labelled mock wells every three
-seconds:
-
-```bash
-source .venv/bin/activate
-python mock_publisher.py --count 0 --wells 5 --interval 3
-```
-
-The dashboard must change after every cycle. Stop both processes with `Ctrl+C`.
-
-## Verification endpoints
-
-```bash
-curl http://127.0.0.1:8000/health
-curl http://127.0.0.1:8000/api/wells/live
-curl http://127.0.0.1:8000/api/terrain-matrix
-```
-
-A healthy live test shows:
-
-- MQTT `connected: true`
-- increasing `valid_messages` and `update_sequence`
-- five wells
-- `ready: true`
-- `48` rows, `48` columns, and `2304` values in each grid
-- zero invalid messages
+A terminal dashboard prints live readings and turns stale after the configured
+`MQTT_STALE_TIMEOUT` seconds without a valid message.
 
 ## Automated tests
 
@@ -69,5 +71,5 @@ A healthy live test shows:
 python -m pytest -q
 ```
 
-Tests do not require the broker. The real HiveMQ round-trip is a separate
-integration check.
+Tests do not require the broker. The real HiveMQ round-trip (firmware to Unity
+and the monitor) is a separate integration check.
