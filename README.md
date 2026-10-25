@@ -109,8 +109,8 @@ See [`firmware/README.md`](firmware/README.md).
 
 ### 2. Cloud Broker
 
-See [`cloud/README.md`](cloud/README.md) for HiveMQ Cloud setup, broker config, and troubleshooting.
-For the independent Python diagnostic monitor, see [`CLOUD_SETUP.md`](CLOUD_SETUP.md).
+See [`cloud/README.md`](cloud/README.md) for HiveMQ Cloud setup, broker config, the
+frozen telemetry contract, and the cloud monitor commands.
 
 ### 3. Unity Digital Twin
 
