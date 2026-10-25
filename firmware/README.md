@@ -10,28 +10,36 @@ The full production code. Connects to Wi-Fi and publishes sensor readings to Hiv
 
 **Dependencies:** `WiFi.h`, `WiFiClientSecure.h`, `PubSubClient.h`
 
-**Before uploading**, set these at the top of the file:
+**Before uploading**, copy `secrets.example.h` to the Git-ignored `secrets.h` file and set:
 
 | Constant | What to fill in |
 |---|---|
-| `WIFI_SSID` | Your Wi-Fi network name |
-| `WIFI_PASSWORD` | Your Wi-Fi password |
-| `MQTT_USERNAME` | HiveMQ Cloud MQTT username |
-| `MQTT_PASSWORD` | HiveMQ Cloud MQTT password |
+| `AQUATWIN_WIFI_SSID` | Your Wi-Fi network name |
+| `AQUATWIN_WIFI_PASSWORD` | Your Wi-Fi password |
+| `AQUATWIN_MQTT_USERNAME` | HiveMQ Cloud MQTT username |
+| `AQUATWIN_MQTT_PASSWORD` | HiveMQ Cloud MQTT password |
+
+The production sketch synchronizes its clock with NTP and verifies HiveMQ's TLS
+certificate against the included ISRG Root X1 CA. It deliberately refuses to
+fall back to an insecure connection when time synchronization fails.
 
 **MQTT topic:** `digitaltwin/well01/sensors`
 
 **Payload format:**
 ```json
 {
-  "device": "well01",
-  "distance_cm": 184.32,
-  "tds_ppm": 410.50,
-  "ph": 7.15
+  "well_id": "WELL_WOKWI_01",
+  "location": {"lat": 24.453900, "lng": 54.377300},
+  "depth_to_water_cm": 143.14,
+  "water_column_height_cm": 356.86,
+  "tds_ppm": 320.3,
+  "status": "ONLINE",
+  "timestamp": 1791700194
 }
 ```
 
-Publishes every 2 seconds.
+Publishes every 2 seconds. The Wokwi well is configured as 500 cm total depth,
+so `water_column_height_cm = 500 - depth_to_water_cm` (clamped at zero).
 
 ---
 
