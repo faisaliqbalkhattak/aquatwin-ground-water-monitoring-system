@@ -1,0 +1,24 @@
+[Unit]
+Description=AquaTwin Guardian analytics worker
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=aquatwin
+Group=aquatwin
+WorkingDirectory=/opt/aquatwin/guardian
+EnvironmentFile=/etc/aquatwin-guardian.env
+Environment=AQUATWIN_DATABASE=/var/lib/aquatwin/guardian.sqlite3
+StateDirectory=aquatwin
+ExecStart=/opt/aquatwin/guardian/.venv/bin/python -m guardian_core run --config /etc/aquatwin-guardian.json
+Restart=on-failure
+RestartSec=10
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/var/lib/aquatwin
+
+[Install]
+WantedBy=multi-user.target

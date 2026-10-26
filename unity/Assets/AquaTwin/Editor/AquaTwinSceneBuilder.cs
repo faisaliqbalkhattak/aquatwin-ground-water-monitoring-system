@@ -1,4 +1,4 @@
-using AquaTwin;
+﻿using AquaTwin;
 using System.Collections.Generic;
 using TMPro;
 using UnityEditor;
@@ -10,7 +10,6 @@ using UnityEngine.UI;
 
 namespace AquaTwinEditor
 {
-    [InitializeOnLoad]
     public static class AquaTwinSceneBuilder
     {
         private const string EnvironmentName = "AquaTwin_Environment";
@@ -29,14 +28,7 @@ namespace AquaTwinEditor
         private static readonly Color SecondaryText = Hex("98A4AB");
         private static readonly Color Divider = Hex("303941");
 
-        static AquaTwinSceneBuilder()
-        {
-            EditorApplication.delayCall += TryAutoBuild;
-            EditorApplication.playModeStateChanged += OnPlayModeStateChanged;
-            EditorSceneManager.sceneOpened += OnSceneOpened;
-        }
-
-        [MenuItem("AquaTwin/Build Presentation Scene", priority = 1)]
+        [MenuItem("AquaTwin/Legacy/Build Single-Well Presentation Scene", priority = 90)]
         public static void BuildPresentationScene()
         {
             if (EditorApplication.isPlayingOrWillChangePlaymode)

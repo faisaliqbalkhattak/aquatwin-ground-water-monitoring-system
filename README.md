@@ -54,6 +54,10 @@ That payload then drives a 3D digital twin of the well built in Unity — the wa
 
 ## Data Flow
 
+### Guardian decision support
+
+The optional [Guardian service and deployment guide](guardian/README.md) adds durable SQLite history, early-warning trends, evidence-gated forecasts, hypothetical pumping scenarios and historical Abu Dhabi context. Unity implementation remains in `unity/`; the worker and public map page live separately in `guardian/`. The existing raw telemetry and offline demo remain usable without the worker.
+
 ```text
 ESP32-S3 sensors
         ↓

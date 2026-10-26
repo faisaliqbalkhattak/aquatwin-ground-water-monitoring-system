@@ -185,3 +185,106 @@ Label { -unity-text-align: middle-left; }
 
 .connection.no-telemetry { background-color: rgb(46, 42, 24); color: rgb(229, 195, 112); }
 .settings-endpoint-preview { font-size: 10px; color: rgb(116, 219, 194); white-space: normal; margin: 6px 0 12px 0; }
+
+/* Guardian readability pass: preserve detail behind disclosure, prioritize operational data. */
+.app { font-size: 16px; }
+.header { min-height: 106px; padding: 16px 24px; }
+.brand { width: 226px; }
+.brand-name { font-size: 26px; letter-spacing: 1px; }
+.brand-copy .eyebrow { display: none; }
+.header-title .muted { display: none; }
+.page-title { font-size: 23px; }
+.eyebrow, .muted { font-size: 13px; letter-spacing: 0; }
+.connection { font-size: 13px; letter-spacing: 0; padding: 7px 12px; }
+.data-status { font-size: 13px; letter-spacing: 0; }
+.connection-detail { font-size: 12px; max-width: 410px; margin: 3px 0; }
+.header-right { max-width: 480px; }
+.summary { padding: 18px 24px; }
+.summary-value { font-size: 38px; margin: 3px 0; }
+.metric-caption { display: none; }
+.summary-metric .eyebrow { font-size: 13px; }
+.section-title { font-size: 18px; }
+.sidebar { width: 238px; padding: 18px 14px; }
+.inspector { width: 300px; padding: 18px; }
+.section-head { margin-bottom: 14px; }
+.count { font-size: 13px; }
+.search .unity-base-field__label { font-size: 13px; }
+.search .unity-base-field__input, .filter { height: 36px; font-size: 15px; }
+.well-row { padding: 10px; }
+.well-row #id { font-size: 15px; }
+.well-row #values { font-size: 14px; }
+.well-row #status { font-size: 12px; letter-spacing: 0; }
+.well-title { font-size: 24px; }
+.well-status { font-size: 13px; letter-spacing: 0; margin-bottom: 14px; }
+.fill-value { font-size: 44px; }
+.metric-label { font-size: 15px; }
+.metric-caption-block .muted { font-size: 12px; }
+.detail-value { font-size: 25px; }
+.metric-note, .inspector-note { font-size: 12px; }
+.detail-metric { padding: 14px 0; }
+.tool, .compact .tool { font-size: 13px; min-height: 32px; padding: 6px 10px; }
+.tools { flex-wrap: wrap; justify-content: flex-end; }
+.layer-select { width: 154px; height: 32px; margin: 2px 8px 2px 0; font-size: 13px; }
+.layer-select .unity-base-field__input { background-color: rgb(21,43,51); color: rgb(203,230,230); border-radius: 5px; border-width: 1px; border-color: rgb(49,83,89); }
+.view-title .eyebrow { display: none; }
+.view-toolbar { min-height: 62px; }
+.view-legend Label { font-size: 12px; margin-right: 14px; }
+.view-note { font-size: 12px; color: rgb(146,175,182); padding-bottom: 10px; }
+.view-corner .eyebrow { display: none; }
+.view-corner .muted { font-size: 12px; }
+.well-pin { font-size: 12px; padding: 5px 8px; max-width: 170px; }
+.well-pin { background-color: rgba(14,33,41,.85); }
+.footer { display: none; }
+.more-details { margin-top: 18px; color: rgb(179,207,214); font-size: 14px; }
+.more-details .unity-foldout__content { margin-left: 0; padding: 10px 0; }
+.location { font-size: 13px; }
+.trend-header .section-title { font-size: 15px; }
+.trend { height: 100px; }
+.guardian-summary { margin-top: 18px; padding: 14px; border-width: 1px; border-color: rgb(40,78,79); border-radius: 8px; background-color: rgb(14,37,43); }
+.guardian-summary-text { font-size: 15px; color: rgb(188,230,219); white-space: normal; margin: 7px 0; }
+.mqtt-detail, .mqtt-error { font-size: 13px; }
+.mqtt-history { font-size: 12px; }
+.demo-badge, .demo-time, .demo-help { font-size: 12px; }
+.settings-field > .unity-base-field__label, .settings-toggle { font-size: 14px; }
+.settings-field > .unity-base-field__input { font-size: 16px; height: 40px; }
+.settings-hint, .settings-topic, .settings-storage, .settings-endpoint-preview { font-size: 13px; }
+.settings-section-label { font-size: 12px; }
+.settings-tab, .settings-save, .settings-cancel { font-size: 14px; }
+.guardian-overlay { position: absolute; top: 0; right: 0; bottom: 0; left: 0; align-items: flex-end; justify-content: center; background-color: rgba(2,10,15,.28); }
+.guardian-card { width: 570px; max-width: 94%; height: 800px; max-height: 94%; margin-right: 20px; background-color: rgb(14,30,40); border-width: 1px; border-color: rgb(53,101,108); border-radius: 14px; overflow: hidden; }
+.guardian-header { flex-direction: row; align-items: center; justify-content: space-between; padding: 22px 24px 12px 24px; }
+.guardian-title { font-size: 26px; -unity-font-style: bold; margin-top: 6px; white-space: normal; }
+.guardian-badge { font-size: 12px; color: rgb(122,226,195); padding: 0 24px 14px 24px; white-space: normal; }
+.guardian-tabs { flex-direction: row; flex-wrap: wrap; padding: 0 18px 12px 18px; border-bottom-width: 1px; border-bottom-color: rgb(39,63,72); }
+.guardian-tabs .active { background-color: rgb(28,74,72); border-color: rgb(77,172,151); color: rgb(164,245,218); }
+.guardian-scroll { flex-grow: 1; min-height: 0; padding: 20px 24px; }
+.guardian-evidence { font-size: 16px; color: rgb(206,225,231); white-space: normal; margin-bottom: 18px; }
+.guardian-field-row { flex-direction: row; margin: 6px 0 12px 0; }
+.guardian-input { flex-grow: 1; flex-basis: 0; flex-direction: column; margin: 8px 10px 8px 0; font-size: 15px; min-width: 0; }
+.guardian-input .unity-base-field__label { font-size: 13px; margin-bottom: 8px; color: rgb(169,198,207); min-width: 0; white-space: normal; }
+.guardian-input .unity-base-field__input { background-color: rgb(7,22,30); color: rgb(222,238,240); min-height: 36px; border-width: 1px; border-color: rgb(44,76,87); border-radius: 6px; padding: 6px 8px; }
+.guardian-chart { height: 190px; margin: 14px 0; background-color: rgb(7,21,29); border-radius: 8px; }
+.guardian-service { font-size: 13px; color: rgb(145,185,187); padding: 10px 24px; white-space: normal; }
+.guardian-footer { flex-direction: row; align-items: center; padding: 14px 20px; border-top-width: 1px; border-top-color: rgb(39,63,72); }
+.guardian-footer .muted { flex-grow: 1; margin-right: 12px; }
+.guardian-saved .tool { -unity-text-align: middle-left; margin-bottom: 6px; }
+.compact .sidebar { width: 210px; }
+.compact .inspector { width: 270px; }
+.compact .brand { width: 195px; }
+.compact .brand-mark { display: none; }
+.compact .summary-value { font-size: 34px; }
+.compact .summary-metric { margin-right: 16px; }
+
+/* Preserve readable fixed sections when the Game view is short. */
+.summary { flex-shrink: 0; min-height: 112px; }
+.guardian-header, .guardian-badge, .guardian-tabs, .guardian-service, .guardian-footer { flex-shrink: 0; }
+.guardian-footer { flex-wrap: wrap; }
+.guardian-footer .muted { width: 100%; margin-bottom: 10px; }
+.guardian-scroll Label, .guardian-chart, .guardian-field-row { flex-shrink: 0; }
+.guardian-scroll Slider.guardian-input { flex-grow: 0; flex-basis: auto; flex-shrink: 0; height: 76px; min-height: 76px; }
+
+/* Twin focus mode keeps the same scene, selection, telemetry and camera controls. */
+.twin-maximized .header, .twin-maximized .summary, .twin-maximized .sidebar, .twin-maximized .inspector, .twin-maximized .demo-controls, .twin-maximized .mqtt-diagnostics { display: none; }
+.twin-maximized .workspace { margin: 10px; }
+.twin-maximized .center { flex-grow: 1; }
+.view-toolbar, .tools { flex-shrink: 0; }

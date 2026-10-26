@@ -1,0 +1,3894 @@
+{
+  "insights": [
+    {
+      "schema_version": 1,
+      "well_id": "DEMO_001",
+      "source": "simulated",
+      "computed_at": 1793016000,
+      "valid_until": 1793016045,
+      "model_version": "guardian-1.0.0",
+      "model": "Theil-Sen / minute medians",
+      "quality": "ILLUSTRATIVE",
+      "risk": "NORMAL",
+      "window_hours": 720.0,
+      "sample_count": 721,
+      "aggregate_count": 721,
+      "source_start": 1790424000,
+      "source_end": 1793016000,
+      "depth_cm": 280.0,
+      "column_cm": 220.0,
+      "tds_ppm": 450.0,
+      "drawdown_cm_day": 2.0,
+      "tds_change_ppm_day": 4.0,
+      "depth_change_cm": 60.0,
+      "anomaly_score": 0.0,
+      "max_horizon_days": 60,
+      "critical_depth_cm": 360,
+      "time_to_critical_days": 40.0,
+      "time_to_tds_review_days": 37.5,
+      "forecasts": [
+        {
+          "day": 0.0,
+          "depth_cm": 280.0,
+          "lower_cm": 279.0,
+          "upper_cm": 281.0,
+          "tds_ppm": 450.0
+        },
+        {
+          "day": 1.0,
+          "depth_cm": 282.0,
+          "lower_cm": 280.9834699545349,
+          "upper_cm": 283.0165300454651,
+          "tds_ppm": 454.0
+        },
+        {
+          "day": 7.0,
+          "depth_cm": 294.0,
+          "lower_cm": 292.88944458340285,
+          "upper_cm": 295.11055541659715,
+          "tds_ppm": 478.0
+        },
+        {
+          "day": 30.0,
+          "depth_cm": 340.0,
+          "lower_cm": 338.5857864376269,
+          "upper_cm": 341.4142135623731,
+          "tds_ppm": 570.0
+        },
+        {
+          "day": 60,
+          "depth_cm": 400.0,
+          "lower_cm": 398.2679491924311,
+          "upper_cm": 401.7320508075689,
+          "tds_ppm": 690.0
+        }
+      ],
+      "history": [
+        {
+          "day": -30.0,
+          "depth_cm": 220.0,
+          "tds_ppm": 330.0
+        },
+        {
+          "day": -29.5,
+          "depth_cm": 221.0,
+          "tds_ppm": 332.0
+        },
+        {
+          "day": -29.0,
+          "depth_cm": 222.0,
+          "tds_ppm": 334.0
+        },
+        {
+          "day": -28.5,
+          "depth_cm": 223.0,
+          "tds_ppm": 336.0
+        },
+        {
+          "day": -28.0,
+          "depth_cm": 224.0,
+          "tds_ppm": 338.0
+        },
+        {
+          "day": -27.5,
+          "depth_cm": 225.0,
+          "tds_ppm": 340.0
+        },
+        {
+          "day": -27.0,
+          "depth_cm": 226.0,
+          "tds_ppm": 342.0
+        },
+        {
+          "day": -26.5,
+          "depth_cm": 227.0,
+          "tds_ppm": 344.0
+        },
+        {
+          "day": -26.0,
+          "depth_cm": 228.0,
+          "tds_ppm": 346.0
+        },
+        {
+          "day": -25.5,
+          "depth_cm": 229.0,
+          "tds_ppm": 348.0
+        },
+        {
+          "day": -25.0,
+          "depth_cm": 230.0,
+          "tds_ppm": 350.0
+        },
+        {
+          "day": -24.5,
+          "depth_cm": 231.0,
+          "tds_ppm": 352.0
+        },
+        {
+          "day": -24.0,
+          "depth_cm": 232.0,
+          "tds_ppm": 354.0
+        },
+        {
+          "day": -23.5,
+          "depth_cm": 233.0,
+          "tds_ppm": 356.0
+        },
+        {
+          "day": -23.0,
+          "depth_cm": 234.0,
+          "tds_ppm": 358.0
+        },
+        {
+          "day": -22.5,
+          "depth_cm": 235.0,
+          "tds_ppm": 360.0
+        },
+        {
+          "day": -22.0,
+          "depth_cm": 236.0,
+          "tds_ppm": 362.0
+        },
+        {
+          "day": -21.5,
+          "depth_cm": 237.0,
+          "tds_ppm": 364.0
+        },
+        {
+          "day": -21.0,
+          "depth_cm": 238.0,
+          "tds_ppm": 366.0
+        },
+        {
+          "day": -20.5,
+          "depth_cm": 239.0,
+          "tds_ppm": 368.0
+        },
+        {
+          "day": -20.0,
+          "depth_cm": 240.0,
+          "tds_ppm": 370.0
+        },
+        {
+          "day": -19.5,
+          "depth_cm": 241.0,
+          "tds_ppm": 372.0
+        },
+        {
+          "day": -19.0,
+          "depth_cm": 242.0,
+          "tds_ppm": 374.0
+        },
+        {
+          "day": -18.5,
+          "depth_cm": 243.0,
+          "tds_ppm": 376.0
+        },
+        {
+          "day": -18.0,
+          "depth_cm": 244.0,
+          "tds_ppm": 378.0
+        },
+        {
+          "day": -17.5,
+          "depth_cm": 245.0,
+          "tds_ppm": 380.0
+        },
+        {
+          "day": -17.0,
+          "depth_cm": 246.0,
+          "tds_ppm": 382.0
+        },
+        {
+          "day": -16.5,
+          "depth_cm": 247.0,
+          "tds_ppm": 384.0
+        },
+        {
+          "day": -16.0,
+          "depth_cm": 248.0,
+          "tds_ppm": 386.0
+        },
+        {
+          "day": -15.5,
+          "depth_cm": 249.0,
+          "tds_ppm": 388.0
+        },
+        {
+          "day": -15.0,
+          "depth_cm": 250.0,
+          "tds_ppm": 390.0
+        },
+        {
+          "day": -14.5,
+          "depth_cm": 251.0,
+          "tds_ppm": 392.0
+        },
+        {
+          "day": -14.0,
+          "depth_cm": 252.0,
+          "tds_ppm": 394.0
+        },
+        {
+          "day": -13.5,
+          "depth_cm": 253.0,
+          "tds_ppm": 396.0
+        },
+        {
+          "day": -13.0,
+          "depth_cm": 254.0,
+          "tds_ppm": 398.0
+        },
+        {
+          "day": -12.5,
+          "depth_cm": 255.0,
+          "tds_ppm": 400.0
+        },
+        {
+          "day": -12.0,
+          "depth_cm": 256.0,
+          "tds_ppm": 402.0
+        },
+        {
+          "day": -11.5,
+          "depth_cm": 257.0,
+          "tds_ppm": 404.0
+        },
+        {
+          "day": -11.0,
+          "depth_cm": 258.0,
+          "tds_ppm": 406.0
+        },
+        {
+          "day": -10.5,
+          "depth_cm": 259.0,
+          "tds_ppm": 408.0
+        },
+        {
+          "day": -10.0,
+          "depth_cm": 260.0,
+          "tds_ppm": 410.0
+        },
+        {
+          "day": -9.5,
+          "depth_cm": 261.0,
+          "tds_ppm": 412.0
+        },
+        {
+          "day": -9.0,
+          "depth_cm": 262.0,
+          "tds_ppm": 414.0
+        },
+        {
+          "day": -8.5,
+          "depth_cm": 263.0,
+          "tds_ppm": 416.0
+        },
+        {
+          "day": -8.0,
+          "depth_cm": 264.0,
+          "tds_ppm": 418.0
+        },
+        {
+          "day": -7.5,
+          "depth_cm": 265.0,
+          "tds_ppm": 420.0
+        },
+        {
+          "day": -7.0,
+          "depth_cm": 266.0,
+          "tds_ppm": 422.0
+        },
+        {
+          "day": -6.5,
+          "depth_cm": 267.0,
+          "tds_ppm": 424.0
+        },
+        {
+          "day": -6.0,
+          "depth_cm": 268.0,
+          "tds_ppm": 426.0
+        },
+        {
+          "day": -5.5,
+          "depth_cm": 269.0,
+          "tds_ppm": 428.0
+        },
+        {
+          "day": -5.0,
+          "depth_cm": 270.0,
+          "tds_ppm": 430.0
+        },
+        {
+          "day": -4.5,
+          "depth_cm": 271.0,
+          "tds_ppm": 432.0
+        },
+        {
+          "day": -4.0,
+          "depth_cm": 272.0,
+          "tds_ppm": 434.0
+        },
+        {
+          "day": -3.5,
+          "depth_cm": 273.0,
+          "tds_ppm": 436.0
+        },
+        {
+          "day": -3.0,
+          "depth_cm": 274.0,
+          "tds_ppm": 438.0
+        },
+        {
+          "day": -2.5,
+          "depth_cm": 275.0,
+          "tds_ppm": 440.0
+        },
+        {
+          "day": -2.0,
+          "depth_cm": 276.0,
+          "tds_ppm": 442.0
+        },
+        {
+          "day": -1.5,
+          "depth_cm": 277.0,
+          "tds_ppm": 444.0
+        },
+        {
+          "day": -1.0,
+          "depth_cm": 278.0,
+          "tds_ppm": 446.0
+        },
+        {
+          "day": -0.5,
+          "depth_cm": 279.0,
+          "tds_ppm": 448.0
+        },
+        {
+          "day": 0.0,
+          "depth_cm": 280.0,
+          "tds_ppm": 450.0
+        }
+      ],
+      "alerts": [],
+      "neighbors": [],
+      "recovery_cm": null,
+      "flags": [
+        "TDS estimate is uncalibrated; review indicator only"
+      ],
+      "message": "Separate designed 30-day history, not inferred from the 90-second animation. No persistent deterioration trigger in this analysis window. Trend extrapolation is not a validated aquifer model.",
+      "reference_elevation_m": null,
+      "vertical_datum": null,
+      "aquifer_id": null,
+      "tds_calibrated": false,
+      "backtest": {
+        "mae_cm": 0.0,
+        "median_absolute_error_cm": 0.0,
+        "interval_coverage": 1.0,
+        "held_out_samples": 145,
+        "note": "chronological holdout; heuristic residual band, not calibrated confidence"
+      }
+    },
+    {
+      "schema_version": 1,
+      "well_id": "DEMO_002",
+      "source": "simulated",
+      "computed_at": 1793016000,
+      "valid_until": 1793016045,
+      "model_version": "guardian-1.0.0",
+      "model": "Theil-Sen / minute medians",
+      "quality": "ILLUSTRATIVE",
+      "risk": "NORMAL",
+      "window_hours": 720.0,
+      "sample_count": 721,
+      "aggregate_count": 721,
+      "source_start": 1790424000,
+      "source_end": 1793016000,
+      "depth_cm": 280.0,
+      "column_cm": 220.0,
+      "tds_ppm": 450.0,
+      "drawdown_cm_day": 2.0,
+      "tds_change_ppm_day": 4.0,
+      "depth_change_cm": 60.0,
+      "anomaly_score": 0.0,
+      "max_horizon_days": 60,
+      "critical_depth_cm": 360,
+      "time_to_critical_days": 40.0,
+      "time_to_tds_review_days": 37.5,
+      "forecasts": [
+        {
+          "day": 0.0,
+          "depth_cm": 280.0,
+          "lower_cm": 279.0,
+          "upper_cm": 281.0,
+          "tds_ppm": 450.0
+        },
+        {
+          "day": 1.0,
+          "depth_cm": 282.0,
+          "lower_cm": 280.9834699545349,
+          "upper_cm": 283.0165300454651,
+          "tds_ppm": 454.0
+        },
+        {
+          "day": 7.0,
+          "depth_cm": 294.0,
+          "lower_cm": 292.88944458340285,
+          "upper_cm": 295.11055541659715,
+          "tds_ppm": 478.0
+        },
+        {
+          "day": 30.0,
+          "depth_cm": 340.0,
+          "lower_cm": 338.5857864376269,
+          "upper_cm": 341.4142135623731,
+          "tds_ppm": 570.0
+        },
+        {
+          "day": 60,
+          "depth_cm": 400.0,
+          "lower_cm": 398.2679491924311,
+          "upper_cm": 401.7320508075689,
+          "tds_ppm": 690.0
+        }
+      ],
+      "history": [
+        {
+          "day": -30.0,
+          "depth_cm": 220.0,
+          "tds_ppm": 330.0
+        },
+        {
+          "day": -29.5,
+          "depth_cm": 221.0,
+          "tds_ppm": 332.0
+        },
+        {
+          "day": -29.0,
+          "depth_cm": 222.0,
+          "tds_ppm": 334.0
+        },
+        {
+          "day": -28.5,
+          "depth_cm": 223.0,
+          "tds_ppm": 336.0
+        },
+        {
+          "day": -28.0,
+          "depth_cm": 224.0,
+          "tds_ppm": 338.0
+        },
+        {
+          "day": -27.5,
+          "depth_cm": 225.0,
+          "tds_ppm": 340.0
+        },
+        {
+          "day": -27.0,
+          "depth_cm": 226.0,
+          "tds_ppm": 342.0
+        },
+        {
+          "day": -26.5,
+          "depth_cm": 227.0,
+          "tds_ppm": 344.0
+        },
+        {
+          "day": -26.0,
+          "depth_cm": 228.0,
+          "tds_ppm": 346.0
+        },
+        {
+          "day": -25.5,
+          "depth_cm": 229.0,
+          "tds_ppm": 348.0
+        },
+        {
+          "day": -25.0,
+          "depth_cm": 230.0,
+          "tds_ppm": 350.0
+        },
+        {
+          "day": -24.5,
+          "depth_cm": 231.0,
+          "tds_ppm": 352.0
+        },
+        {
+          "day": -24.0,
+          "depth_cm": 232.0,
+          "tds_ppm": 354.0
+        },
+        {
+          "day": -23.5,
+          "depth_cm": 233.0,
+          "tds_ppm": 356.0
+        },
+        {
+          "day": -23.0,
+          "depth_cm": 234.0,
+          "tds_ppm": 358.0
+        },
+        {
+          "day": -22.5,
+          "depth_cm": 235.0,
+          "tds_ppm": 360.0
+        },
+        {
+          "day": -22.0,
+          "depth_cm": 236.0,
+          "tds_ppm": 362.0
+        },
+        {
+          "day": -21.5,
+          "depth_cm": 237.0,
+          "tds_ppm": 364.0
+        },
+        {
+          "day": -21.0,
+          "depth_cm": 238.0,
+          "tds_ppm": 366.0
+        },
+        {
+          "day": -20.5,
+          "depth_cm": 239.0,
+          "tds_ppm": 368.0
+        },
+        {
+          "day": -20.0,
+          "depth_cm": 240.0,
+          "tds_ppm": 370.0
+        },
+        {
+          "day": -19.5,
+          "depth_cm": 241.0,
+          "tds_ppm": 372.0
+        },
+        {
+          "day": -19.0,
+          "depth_cm": 242.0,
+          "tds_ppm": 374.0
+        },
+        {
+          "day": -18.5,
+          "depth_cm": 243.0,
+          "tds_ppm": 376.0
+        },
+        {
+          "day": -18.0,
+          "depth_cm": 244.0,
+          "tds_ppm": 378.0
+        },
+        {
+          "day": -17.5,
+          "depth_cm": 245.0,
+          "tds_ppm": 380.0
+        },
+        {
+          "day": -17.0,
+          "depth_cm": 246.0,
+          "tds_ppm": 382.0
+        },
+        {
+          "day": -16.5,
+          "depth_cm": 247.0,
+          "tds_ppm": 384.0
+        },
+        {
+          "day": -16.0,
+          "depth_cm": 248.0,
+          "tds_ppm": 386.0
+        },
+        {
+          "day": -15.5,
+          "depth_cm": 249.0,
+          "tds_ppm": 388.0
+        },
+        {
+          "day": -15.0,
+          "depth_cm": 250.0,
+          "tds_ppm": 390.0
+        },
+        {
+          "day": -14.5,
+          "depth_cm": 251.0,
+          "tds_ppm": 392.0
+        },
+        {
+          "day": -14.0,
+          "depth_cm": 252.0,
+          "tds_ppm": 394.0
+        },
+        {
+          "day": -13.5,
+          "depth_cm": 253.0,
+          "tds_ppm": 396.0
+        },
+        {
+          "day": -13.0,
+          "depth_cm": 254.0,
+          "tds_ppm": 398.0
+        },
+        {
+          "day": -12.5,
+          "depth_cm": 255.0,
+          "tds_ppm": 400.0
+        },
+        {
+          "day": -12.0,
+          "depth_cm": 256.0,
+          "tds_ppm": 402.0
+        },
+        {
+          "day": -11.5,
+          "depth_cm": 257.0,
+          "tds_ppm": 404.0
+        },
+        {
+          "day": -11.0,
+          "depth_cm": 258.0,
+          "tds_ppm": 406.0
+        },
+        {
+          "day": -10.5,
+          "depth_cm": 259.0,
+          "tds_ppm": 408.0
+        },
+        {
+          "day": -10.0,
+          "depth_cm": 260.0,
+          "tds_ppm": 410.0
+        },
+        {
+          "day": -9.5,
+          "depth_cm": 261.0,
+          "tds_ppm": 412.0
+        },
+        {
+          "day": -9.0,
+          "depth_cm": 262.0,
+          "tds_ppm": 414.0
+        },
+        {
+          "day": -8.5,
+          "depth_cm": 263.0,
+          "tds_ppm": 416.0
+        },
+        {
+          "day": -8.0,
+          "depth_cm": 264.0,
+          "tds_ppm": 418.0
+        },
+        {
+          "day": -7.5,
+          "depth_cm": 265.0,
+          "tds_ppm": 420.0
+        },
+        {
+          "day": -7.0,
+          "depth_cm": 266.0,
+          "tds_ppm": 422.0
+        },
+        {
+          "day": -6.5,
+          "depth_cm": 267.0,
+          "tds_ppm": 424.0
+        },
+        {
+          "day": -6.0,
+          "depth_cm": 268.0,
+          "tds_ppm": 426.0
+        },
+        {
+          "day": -5.5,
+          "depth_cm": 269.0,
+          "tds_ppm": 428.0
+        },
+        {
+          "day": -5.0,
+          "depth_cm": 270.0,
+          "tds_ppm": 430.0
+        },
+        {
+          "day": -4.5,
+          "depth_cm": 271.0,
+          "tds_ppm": 432.0
+        },
+        {
+          "day": -4.0,
+          "depth_cm": 272.0,
+          "tds_ppm": 434.0
+        },
+        {
+          "day": -3.5,
+          "depth_cm": 273.0,
+          "tds_ppm": 436.0
+        },
+        {
+          "day": -3.0,
+          "depth_cm": 274.0,
+          "tds_ppm": 438.0
+        },
+        {
+          "day": -2.5,
+          "depth_cm": 275.0,
+          "tds_ppm": 440.0
+        },
+        {
+          "day": -2.0,
+          "depth_cm": 276.0,
+          "tds_ppm": 442.0
+        },
+        {
+          "day": -1.5,
+          "depth_cm": 277.0,
+          "tds_ppm": 444.0
+        },
+        {
+          "day": -1.0,
+          "depth_cm": 278.0,
+          "tds_ppm": 446.0
+        },
+        {
+          "day": -0.5,
+          "depth_cm": 279.0,
+          "tds_ppm": 448.0
+        },
+        {
+          "day": 0.0,
+          "depth_cm": 280.0,
+          "tds_ppm": 450.0
+        }
+      ],
+      "alerts": [],
+      "neighbors": [],
+      "recovery_cm": null,
+      "flags": [
+        "TDS estimate is uncalibrated; review indicator only"
+      ],
+      "message": "Separate designed 30-day history, not inferred from the 90-second animation. No persistent deterioration trigger in this analysis window. Trend extrapolation is not a validated aquifer model.",
+      "reference_elevation_m": null,
+      "vertical_datum": null,
+      "aquifer_id": null,
+      "tds_calibrated": false,
+      "backtest": {
+        "mae_cm": 0.0,
+        "median_absolute_error_cm": 0.0,
+        "interval_coverage": 1.0,
+        "held_out_samples": 145,
+        "note": "chronological holdout; heuristic residual band, not calibrated confidence"
+      }
+    },
+    {
+      "schema_version": 1,
+      "well_id": "DEMO_003",
+      "source": "simulated",
+      "computed_at": 1793016000,
+      "valid_until": 1793016045,
+      "model_version": "guardian-1.0.0",
+      "model": "Theil-Sen / minute medians",
+      "quality": "ILLUSTRATIVE",
+      "risk": "NORMAL",
+      "window_hours": 720.0,
+      "sample_count": 721,
+      "aggregate_count": 721,
+      "source_start": 1790424000,
+      "source_end": 1793016000,
+      "depth_cm": 205.0,
+      "column_cm": 295.0,
+      "tds_ppm": 450.0,
+      "drawdown_cm_day": -0.5,
+      "tds_change_ppm_day": 4.0,
+      "depth_change_cm": -15.0,
+      "anomaly_score": 0.0,
+      "max_horizon_days": 60,
+      "critical_depth_cm": 360,
+      "time_to_critical_days": null,
+      "time_to_tds_review_days": 37.5,
+      "forecasts": [
+        {
+          "day": 0.0,
+          "depth_cm": 205.0,
+          "lower_cm": 204.0,
+          "upper_cm": 206.0,
+          "tds_ppm": 450.0
+        },
+        {
+          "day": 1.0,
+          "depth_cm": 204.5,
+          "lower_cm": 203.48346995453488,
+          "upper_cm": 205.51653004546512,
+          "tds_ppm": 454.0
+        },
+        {
+          "day": 7.0,
+          "depth_cm": 201.5,
+          "lower_cm": 200.38944458340282,
+          "upper_cm": 202.61055541659718,
+          "tds_ppm": 478.0
+        },
+        {
+          "day": 30.0,
+          "depth_cm": 190.0,
+          "lower_cm": 188.5857864376269,
+          "upper_cm": 191.4142135623731,
+          "tds_ppm": 570.0
+        },
+        {
+          "day": 60,
+          "depth_cm": 175.0,
+          "lower_cm": 173.26794919243113,
+          "upper_cm": 176.73205080756887,
+          "tds_ppm": 690.0
+        }
+      ],
+      "history": [
+        {
+          "day": -30.0,
+          "depth_cm": 220.0,
+          "tds_ppm": 330.0
+        },
+        {
+          "day": -29.5,
+          "depth_cm": 219.75,
+          "tds_ppm": 332.0
+        },
+        {
+          "day": -29.0,
+          "depth_cm": 219.5,
+          "tds_ppm": 334.0
+        },
+        {
+          "day": -28.5,
+          "depth_cm": 219.25,
+          "tds_ppm": 336.0
+        },
+        {
+          "day": -28.0,
+          "depth_cm": 219.0,
+          "tds_ppm": 338.0
+        },
+        {
+          "day": -27.5,
+          "depth_cm": 218.75,
+          "tds_ppm": 340.0
+        },
+        {
+          "day": -27.0,
+          "depth_cm": 218.5,
+          "tds_ppm": 342.0
+        },
+        {
+          "day": -26.5,
+          "depth_cm": 218.25,
+          "tds_ppm": 344.0
+        },
+        {
+          "day": -26.0,
+          "depth_cm": 218.0,
+          "tds_ppm": 346.0
+        },
+        {
+          "day": -25.5,
+          "depth_cm": 217.75,
+          "tds_ppm": 348.0
+        },
+        {
+          "day": -25.0,
+          "depth_cm": 217.5,
+          "tds_ppm": 350.0
+        },
+        {
+          "day": -24.5,
+          "depth_cm": 217.25,
+          "tds_ppm": 352.0
+        },
+        {
+          "day": -24.0,
+          "depth_cm": 217.0,
+          "tds_ppm": 354.0
+        },
+        {
+          "day": -23.5,
+          "depth_cm": 216.75,
+          "tds_ppm": 356.0
+        },
+        {
+          "day": -23.0,
+          "depth_cm": 216.5,
+          "tds_ppm": 358.0
+        },
+        {
+          "day": -22.5,
+          "depth_cm": 216.25,
+          "tds_ppm": 360.0
+        },
+        {
+          "day": -22.0,
+          "depth_cm": 216.0,
+          "tds_ppm": 362.0
+        },
+        {
+          "day": -21.5,
+          "depth_cm": 215.75,
+          "tds_ppm": 364.0
+        },
+        {
+          "day": -21.0,
+          "depth_cm": 215.5,
+          "tds_ppm": 366.0
+        },
+        {
+          "day": -20.5,
+          "depth_cm": 215.25,
+          "tds_ppm": 368.0
+        },
+        {
+          "day": -20.0,
+          "depth_cm": 215.0,
+          "tds_ppm": 370.0
+        },
+        {
+          "day": -19.5,
+          "depth_cm": 214.75,
+          "tds_ppm": 372.0
+        },
+        {
+          "day": -19.0,
+          "depth_cm": 214.5,
+          "tds_ppm": 374.0
+        },
+        {
+          "day": -18.5,
+          "depth_cm": 214.25,
+          "tds_ppm": 376.0
+        },
+        {
+          "day": -18.0,
+          "depth_cm": 214.0,
+          "tds_ppm": 378.0
+        },
+        {
+          "day": -17.5,
+          "depth_cm": 213.75,
+          "tds_ppm": 380.0
+        },
+        {
+          "day": -17.0,
+          "depth_cm": 213.5,
+          "tds_ppm": 382.0
+        },
+        {
+          "day": -16.5,
+          "depth_cm": 213.25,
+          "tds_ppm": 384.0
+        },
+        {
+          "day": -16.0,
+          "depth_cm": 213.0,
+          "tds_ppm": 386.0
+        },
+        {
+          "day": -15.5,
+          "depth_cm": 212.75,
+          "tds_ppm": 388.0
+        },
+        {
+          "day": -15.0,
+          "depth_cm": 212.5,
+          "tds_ppm": 390.0
+        },
+        {
+          "day": -14.5,
+          "depth_cm": 212.25,
+          "tds_ppm": 392.0
+        },
+        {
+          "day": -14.0,
+          "depth_cm": 212.0,
+          "tds_ppm": 394.0
+        },
+        {
+          "day": -13.5,
+          "depth_cm": 211.75,
+          "tds_ppm": 396.0
+        },
+        {
+          "day": -13.0,
+          "depth_cm": 211.5,
+          "tds_ppm": 398.0
+        },
+        {
+          "day": -12.5,
+          "depth_cm": 211.25,
+          "tds_ppm": 400.0
+        },
+        {
+          "day": -12.0,
+          "depth_cm": 211.0,
+          "tds_ppm": 402.0
+        },
+        {
+          "day": -11.5,
+          "depth_cm": 210.75,
+          "tds_ppm": 404.0
+        },
+        {
+          "day": -11.0,
+          "depth_cm": 210.5,
+          "tds_ppm": 406.0
+        },
+        {
+          "day": -10.5,
+          "depth_cm": 210.25,
+          "tds_ppm": 408.0
+        },
+        {
+          "day": -10.0,
+          "depth_cm": 210.0,
+          "tds_ppm": 410.0
+        },
+        {
+          "day": -9.5,
+          "depth_cm": 209.75,
+          "tds_ppm": 412.0
+        },
+        {
+          "day": -9.0,
+          "depth_cm": 209.5,
+          "tds_ppm": 414.0
+        },
+        {
+          "day": -8.5,
+          "depth_cm": 209.25,
+          "tds_ppm": 416.0
+        },
+        {
+          "day": -8.0,
+          "depth_cm": 209.0,
+          "tds_ppm": 418.0
+        },
+        {
+          "day": -7.5,
+          "depth_cm": 208.75,
+          "tds_ppm": 420.0
+        },
+        {
+          "day": -7.0,
+          "depth_cm": 208.5,
+          "tds_ppm": 422.0
+        },
+        {
+          "day": -6.5,
+          "depth_cm": 208.25,
+          "tds_ppm": 424.0
+        },
+        {
+          "day": -6.0,
+          "depth_cm": 208.0,
+          "tds_ppm": 426.0
+        },
+        {
+          "day": -5.5,
+          "depth_cm": 207.75,
+          "tds_ppm": 428.0
+        },
+        {
+          "day": -5.0,
+          "depth_cm": 207.5,
+          "tds_ppm": 430.0
+        },
+        {
+          "day": -4.5,
+          "depth_cm": 207.25,
+          "tds_ppm": 432.0
+        },
+        {
+          "day": -4.0,
+          "depth_cm": 207.0,
+          "tds_ppm": 434.0
+        },
+        {
+          "day": -3.5,
+          "depth_cm": 206.75,
+          "tds_ppm": 436.0
+        },
+        {
+          "day": -3.0,
+          "depth_cm": 206.5,
+          "tds_ppm": 438.0
+        },
+        {
+          "day": -2.5,
+          "depth_cm": 206.25,
+          "tds_ppm": 440.0
+        },
+        {
+          "day": -2.0,
+          "depth_cm": 206.0,
+          "tds_ppm": 442.0
+        },
+        {
+          "day": -1.5,
+          "depth_cm": 205.75,
+          "tds_ppm": 444.0
+        },
+        {
+          "day": -1.0,
+          "depth_cm": 205.5,
+          "tds_ppm": 446.0
+        },
+        {
+          "day": -0.5,
+          "depth_cm": 205.25,
+          "tds_ppm": 448.0
+        },
+        {
+          "day": 0.0,
+          "depth_cm": 205.0,
+          "tds_ppm": 450.0
+        }
+      ],
+      "alerts": [],
+      "neighbors": [],
+      "recovery_cm": null,
+      "flags": [
+        "TDS estimate is uncalibrated; review indicator only"
+      ],
+      "message": "Separate designed 30-day history, not inferred from the 90-second animation. No persistent deterioration trigger in this analysis window. Trend extrapolation is not a validated aquifer model.",
+      "reference_elevation_m": null,
+      "vertical_datum": null,
+      "aquifer_id": null,
+      "tds_calibrated": false,
+      "backtest": {
+        "mae_cm": 0.0,
+        "median_absolute_error_cm": 0.0,
+        "interval_coverage": 1.0,
+        "held_out_samples": 145,
+        "note": "chronological holdout; heuristic residual band, not calibrated confidence"
+      }
+    },
+    {
+      "schema_version": 1,
+      "well_id": "DEMO_004",
+      "source": "simulated",
+      "computed_at": 1793016000,
+      "valid_until": 1793016045,
+      "model_version": "guardian-1.0.0",
+      "model": "Theil-Sen / minute medians",
+      "quality": "ILLUSTRATIVE",
+      "risk": "NORMAL",
+      "window_hours": 720.0,
+      "sample_count": 721,
+      "aggregate_count": 721,
+      "source_start": 1790424000,
+      "source_end": 1793016000,
+      "depth_cm": 280.0,
+      "column_cm": 220.0,
+      "tds_ppm": 450.0,
+      "drawdown_cm_day": 2.0,
+      "tds_change_ppm_day": 4.0,
+      "depth_change_cm": 60.0,
+      "anomaly_score": 0.0,
+      "max_horizon_days": 60,
+      "critical_depth_cm": 360,
+      "time_to_critical_days": 40.0,
+      "time_to_tds_review_days": 37.5,
+      "forecasts": [
+        {
+          "day": 0.0,
+          "depth_cm": 280.0,
+          "lower_cm": 279.0,
+          "upper_cm": 281.0,
+          "tds_ppm": 450.0
+        },
+        {
+          "day": 1.0,
+          "depth_cm": 282.0,
+          "lower_cm": 280.9834699545349,
+          "upper_cm": 283.0165300454651,
+          "tds_ppm": 454.0
+        },
+        {
+          "day": 7.0,
+          "depth_cm": 294.0,
+          "lower_cm": 292.88944458340285,
+          "upper_cm": 295.11055541659715,
+          "tds_ppm": 478.0
+        },
+        {
+          "day": 30.0,
+          "depth_cm": 340.0,
+          "lower_cm": 338.5857864376269,
+          "upper_cm": 341.4142135623731,
+          "tds_ppm": 570.0
+        },
+        {
+          "day": 60,
+          "depth_cm": 400.0,
+          "lower_cm": 398.2679491924311,
+          "upper_cm": 401.7320508075689,
+          "tds_ppm": 690.0
+        }
+      ],
+      "history": [
+        {
+          "day": -30.0,
+          "depth_cm": 220.0,
+          "tds_ppm": 330.0
+        },
+        {
+          "day": -29.5,
+          "depth_cm": 221.0,
+          "tds_ppm": 332.0
+        },
+        {
+          "day": -29.0,
+          "depth_cm": 222.0,
+          "tds_ppm": 334.0
+        },
+        {
+          "day": -28.5,
+          "depth_cm": 223.0,
+          "tds_ppm": 336.0
+        },
+        {
+          "day": -28.0,
+          "depth_cm": 224.0,
+          "tds_ppm": 338.0
+        },
+        {
+          "day": -27.5,
+          "depth_cm": 225.0,
+          "tds_ppm": 340.0
+        },
+        {
+          "day": -27.0,
+          "depth_cm": 226.0,
+          "tds_ppm": 342.0
+        },
+        {
+          "day": -26.5,
+          "depth_cm": 227.0,
+          "tds_ppm": 344.0
+        },
+        {
+          "day": -26.0,
+          "depth_cm": 228.0,
+          "tds_ppm": 346.0
+        },
+        {
+          "day": -25.5,
+          "depth_cm": 229.0,
+          "tds_ppm": 348.0
+        },
+        {
+          "day": -25.0,
+          "depth_cm": 230.0,
+          "tds_ppm": 350.0
+        },
+        {
+          "day": -24.5,
+          "depth_cm": 231.0,
+          "tds_ppm": 352.0
+        },
+        {
+          "day": -24.0,
+          "depth_cm": 232.0,
+          "tds_ppm": 354.0
+        },
+        {
+          "day": -23.5,
+          "depth_cm": 233.0,
+          "tds_ppm": 356.0
+        },
+        {
+          "day": -23.0,
+          "depth_cm": 234.0,
+          "tds_ppm": 358.0
+        },
+        {
+          "day": -22.5,
+          "depth_cm": 235.0,
+          "tds_ppm": 360.0
+        },
+        {
+          "day": -22.0,
+          "depth_cm": 236.0,
+          "tds_ppm": 362.0
+        },
+        {
+          "day": -21.5,
+          "depth_cm": 237.0,
+          "tds_ppm": 364.0
+        },
+        {
+          "day": -21.0,
+          "depth_cm": 238.0,
+          "tds_ppm": 366.0
+        },
+        {
+          "day": -20.5,
+          "depth_cm": 239.0,
+          "tds_ppm": 368.0
+        },
+        {
+          "day": -20.0,
+          "depth_cm": 240.0,
+          "tds_ppm": 370.0
+        },
+        {
+          "day": -19.5,
+          "depth_cm": 241.0,
+          "tds_ppm": 372.0
+        },
+        {
+          "day": -19.0,
+          "depth_cm": 242.0,
+          "tds_ppm": 374.0
+        },
+        {
+          "day": -18.5,
+          "depth_cm": 243.0,
+          "tds_ppm": 376.0
+        },
+        {
+          "day": -18.0,
+          "depth_cm": 244.0,
+          "tds_ppm": 378.0
+        },
+        {
+          "day": -17.5,
+          "depth_cm": 245.0,
+          "tds_ppm": 380.0
+        },
+        {
+          "day": -17.0,
+          "depth_cm": 246.0,
+          "tds_ppm": 382.0
+        },
+        {
+          "day": -16.5,
+          "depth_cm": 247.0,
+          "tds_ppm": 384.0
+        },
+        {
+          "day": -16.0,
+          "depth_cm": 248.0,
+          "tds_ppm": 386.0
+        },
+        {
+          "day": -15.5,
+          "depth_cm": 249.0,
+          "tds_ppm": 388.0
+        },
+        {
+          "day": -15.0,
+          "depth_cm": 250.0,
+          "tds_ppm": 390.0
+        },
+        {
+          "day": -14.5,
+          "depth_cm": 251.0,
+          "tds_ppm": 392.0
+        },
+        {
+          "day": -14.0,
+          "depth_cm": 252.0,
+          "tds_ppm": 394.0
+        },
+        {
+          "day": -13.5,
+          "depth_cm": 253.0,
+          "tds_ppm": 396.0
+        },
+        {
+          "day": -13.0,
+          "depth_cm": 254.0,
+          "tds_ppm": 398.0
+        },
+        {
+          "day": -12.5,
+          "depth_cm": 255.0,
+          "tds_ppm": 400.0
+        },
+        {
+          "day": -12.0,
+          "depth_cm": 256.0,
+          "tds_ppm": 402.0
+        },
+        {
+          "day": -11.5,
+          "depth_cm": 257.0,
+          "tds_ppm": 404.0
+        },
+        {
+          "day": -11.0,
+          "depth_cm": 258.0,
+          "tds_ppm": 406.0
+        },
+        {
+          "day": -10.5,
+          "depth_cm": 259.0,
+          "tds_ppm": 408.0
+        },
+        {
+          "day": -10.0,
+          "depth_cm": 260.0,
+          "tds_ppm": 410.0
+        },
+        {
+          "day": -9.5,
+          "depth_cm": 261.0,
+          "tds_ppm": 412.0
+        },
+        {
+          "day": -9.0,
+          "depth_cm": 262.0,
+          "tds_ppm": 414.0
+        },
+        {
+          "day": -8.5,
+          "depth_cm": 263.0,
+          "tds_ppm": 416.0
+        },
+        {
+          "day": -8.0,
+          "depth_cm": 264.0,
+          "tds_ppm": 418.0
+        },
+        {
+          "day": -7.5,
+          "depth_cm": 265.0,
+          "tds_ppm": 420.0
+        },
+        {
+          "day": -7.0,
+          "depth_cm": 266.0,
+          "tds_ppm": 422.0
+        },
+        {
+          "day": -6.5,
+          "depth_cm": 267.0,
+          "tds_ppm": 424.0
+        },
+        {
+          "day": -6.0,
+          "depth_cm": 268.0,
+          "tds_ppm": 426.0
+        },
+        {
+          "day": -5.5,
+          "depth_cm": 269.0,
+          "tds_ppm": 428.0
+        },
+        {
+          "day": -5.0,
+          "depth_cm": 270.0,
+          "tds_ppm": 430.0
+        },
+        {
+          "day": -4.5,
+          "depth_cm": 271.0,
+          "tds_ppm": 432.0
+        },
+        {
+          "day": -4.0,
+          "depth_cm": 272.0,
+          "tds_ppm": 434.0
+        },
+        {
+          "day": -3.5,
+          "depth_cm": 273.0,
+          "tds_ppm": 436.0
+        },
+        {
+          "day": -3.0,
+          "depth_cm": 274.0,
+          "tds_ppm": 438.0
+        },
+        {
+          "day": -2.5,
+          "depth_cm": 275.0,
+          "tds_ppm": 440.0
+        },
+        {
+          "day": -2.0,
+          "depth_cm": 276.0,
+          "tds_ppm": 442.0
+        },
+        {
+          "day": -1.5,
+          "depth_cm": 277.0,
+          "tds_ppm": 444.0
+        },
+        {
+          "day": -1.0,
+          "depth_cm": 278.0,
+          "tds_ppm": 446.0
+        },
+        {
+          "day": -0.5,
+          "depth_cm": 279.0,
+          "tds_ppm": 448.0
+        },
+        {
+          "day": 0.0,
+          "depth_cm": 280.0,
+          "tds_ppm": 450.0
+        }
+      ],
+      "alerts": [],
+      "neighbors": [],
+      "recovery_cm": null,
+      "flags": [
+        "TDS estimate is uncalibrated; review indicator only"
+      ],
+      "message": "Separate designed 30-day history, not inferred from the 90-second animation. No persistent deterioration trigger in this analysis window. Trend extrapolation is not a validated aquifer model.",
+      "reference_elevation_m": null,
+      "vertical_datum": null,
+      "aquifer_id": null,
+      "tds_calibrated": false,
+      "backtest": {
+        "mae_cm": 0.0,
+        "median_absolute_error_cm": 0.0,
+        "interval_coverage": 1.0,
+        "held_out_samples": 145,
+        "note": "chronological holdout; heuristic residual band, not calibrated confidence"
+      }
+    },
+    {
+      "schema_version": 1,
+      "well_id": "DEMO_005",
+      "source": "simulated",
+      "computed_at": 1793016000,
+      "valid_until": 1793016045,
+      "model_version": "guardian-1.0.0",
+      "model": "Theil-Sen / minute medians",
+      "quality": "ILLUSTRATIVE",
+      "risk": "NORMAL",
+      "window_hours": 720.0,
+      "sample_count": 721,
+      "aggregate_count": 721,
+      "source_start": 1790424000,
+      "source_end": 1793016000,
+      "depth_cm": 280.0,
+      "column_cm": 220.0,
+      "tds_ppm": 450.0,
+      "drawdown_cm_day": 2.0,
+      "tds_change_ppm_day": 4.0,
+      "depth_change_cm": 60.0,
+      "anomaly_score": 0.0,
+      "max_horizon_days": 60,
+      "critical_depth_cm": 360,
+      "time_to_critical_days": 40.0,
+      "time_to_tds_review_days": 37.5,
+      "forecasts": [
+        {
+          "day": 0.0,
+          "depth_cm": 280.0,
+          "lower_cm": 279.0,
+          "upper_cm": 281.0,
+          "tds_ppm": 450.0
+        },
+        {
+          "day": 1.0,
+          "depth_cm": 282.0,
+          "lower_cm": 280.9834699545349,
+          "upper_cm": 283.0165300454651,
+          "tds_ppm": 454.0
+        },
+        {
+          "day": 7.0,
+          "depth_cm": 294.0,
+          "lower_cm": 292.88944458340285,
+          "upper_cm": 295.11055541659715,
+          "tds_ppm": 478.0
+        },
+        {
+          "day": 30.0,
+          "depth_cm": 340.0,
+          "lower_cm": 338.5857864376269,
+          "upper_cm": 341.4142135623731,
+          "tds_ppm": 570.0
+        },
+        {
+          "day": 60,
+          "depth_cm": 400.0,
+          "lower_cm": 398.2679491924311,
+          "upper_cm": 401.7320508075689,
+          "tds_ppm": 690.0
+        }
+      ],
+      "history": [
+        {
+          "day": -30.0,
+          "depth_cm": 220.0,
+          "tds_ppm": 330.0
+        },
+        {
+          "day": -29.5,
+          "depth_cm": 221.0,
+          "tds_ppm": 332.0
+        },
+        {
+          "day": -29.0,
+          "depth_cm": 222.0,
+          "tds_ppm": 334.0
+        },
+        {
+          "day": -28.5,
+          "depth_cm": 223.0,
+          "tds_ppm": 336.0
+        },
+        {
+          "day": -28.0,
+          "depth_cm": 224.0,
+          "tds_ppm": 338.0
+        },
+        {
+          "day": -27.5,
+          "depth_cm": 225.0,
+          "tds_ppm": 340.0
+        },
+        {
+          "day": -27.0,
+          "depth_cm": 226.0,
+          "tds_ppm": 342.0
+        },
+        {
+          "day": -26.5,
+          "depth_cm": 227.0,
+          "tds_ppm": 344.0
+        },
+        {
+          "day": -26.0,
+          "depth_cm": 228.0,
+          "tds_ppm": 346.0
+        },
+        {
+          "day": -25.5,
+          "depth_cm": 229.0,
+          "tds_ppm": 348.0
+        },
+        {
+          "day": -25.0,
+          "depth_cm": 230.0,
+          "tds_ppm": 350.0
+        },
+        {
+          "day": -24.5,
+          "depth_cm": 231.0,
+          "tds_ppm": 352.0
+        },
+        {
+          "day": -24.0,
+          "depth_cm": 232.0,
+          "tds_ppm": 354.0
+        },
+        {
+          "day": -23.5,
+          "depth_cm": 233.0,
+          "tds_ppm": 356.0
+        },
+        {
+          "day": -23.0,
+          "depth_cm": 234.0,
+          "tds_ppm": 358.0
+        },
+        {
+          "day": -22.5,
+          "depth_cm": 235.0,
+          "tds_ppm": 360.0
+        },
+        {
+          "day": -22.0,
+          "depth_cm": 236.0,
+          "tds_ppm": 362.0
+        },
+        {
+          "day": -21.5,
+          "depth_cm": 237.0,
+          "tds_ppm": 364.0
+        },
+        {
+          "day": -21.0,
+          "depth_cm": 238.0,
+          "tds_ppm": 366.0
+        },
+        {
+          "day": -20.5,
+          "depth_cm": 239.0,
+          "tds_ppm": 368.0
+        },
+        {
+          "day": -20.0,
+          "depth_cm": 240.0,
+          "tds_ppm": 370.0
+        },
+        {
+          "day": -19.5,
+          "depth_cm": 241.0,
+          "tds_ppm": 372.0
+        },
+        {
+          "day": -19.0,
+          "depth_cm": 242.0,
+          "tds_ppm": 374.0
+        },
+        {
+          "day": -18.5,
+          "depth_cm": 243.0,
+          "tds_ppm": 376.0
+        },
+        {
+          "day": -18.0,
+          "depth_cm": 244.0,
+          "tds_ppm": 378.0
+        },
+        {
+          "day": -17.5,
+          "depth_cm": 245.0,
+          "tds_ppm": 380.0
+        },
+        {
+          "day": -17.0,
+          "depth_cm": 246.0,
+          "tds_ppm": 382.0
+        },
+        {
+          "day": -16.5,
+          "depth_cm": 247.0,
+          "tds_ppm": 384.0
+        },
+        {
+          "day": -16.0,
+          "depth_cm": 248.0,
+          "tds_ppm": 386.0
+        },
+        {
+          "day": -15.5,
+          "depth_cm": 249.0,
+          "tds_ppm": 388.0
+        },
+        {
+          "day": -15.0,
+          "depth_cm": 250.0,
+          "tds_ppm": 390.0
+        },
+        {
+          "day": -14.5,
+          "depth_cm": 251.0,
+          "tds_ppm": 392.0
+        },
+        {
+          "day": -14.0,
+          "depth_cm": 252.0,
+          "tds_ppm": 394.0
+        },
+        {
+          "day": -13.5,
+          "depth_cm": 253.0,
+          "tds_ppm": 396.0
+        },
+        {
+          "day": -13.0,
+          "depth_cm": 254.0,
+          "tds_ppm": 398.0
+        },
+        {
+          "day": -12.5,
+          "depth_cm": 255.0,
+          "tds_ppm": 400.0
+        },
+        {
+          "day": -12.0,
+          "depth_cm": 256.0,
+          "tds_ppm": 402.0
+        },
+        {
+          "day": -11.5,
+          "depth_cm": 257.0,
+          "tds_ppm": 404.0
+        },
+        {
+          "day": -11.0,
+          "depth_cm": 258.0,
+          "tds_ppm": 406.0
+        },
+        {
+          "day": -10.5,
+          "depth_cm": 259.0,
+          "tds_ppm": 408.0
+        },
+        {
+          "day": -10.0,
+          "depth_cm": 260.0,
+          "tds_ppm": 410.0
+        },
+        {
+          "day": -9.5,
+          "depth_cm": 261.0,
+          "tds_ppm": 412.0
+        },
+        {
+          "day": -9.0,
+          "depth_cm": 262.0,
+          "tds_ppm": 414.0
+        },
+        {
+          "day": -8.5,
+          "depth_cm": 263.0,
+          "tds_ppm": 416.0
+        },
+        {
+          "day": -8.0,
+          "depth_cm": 264.0,
+          "tds_ppm": 418.0
+        },
+        {
+          "day": -7.5,
+          "depth_cm": 265.0,
+          "tds_ppm": 420.0
+        },
+        {
+          "day": -7.0,
+          "depth_cm": 266.0,
+          "tds_ppm": 422.0
+        },
+        {
+          "day": -6.5,
+          "depth_cm": 267.0,
+          "tds_ppm": 424.0
+        },
+        {
+          "day": -6.0,
+          "depth_cm": 268.0,
+          "tds_ppm": 426.0
+        },
+        {
+          "day": -5.5,
+          "depth_cm": 269.0,
+          "tds_ppm": 428.0
+        },
+        {
+          "day": -5.0,
+          "depth_cm": 270.0,
+          "tds_ppm": 430.0
+        },
+        {
+          "day": -4.5,
+          "depth_cm": 271.0,
+          "tds_ppm": 432.0
+        },
+        {
+          "day": -4.0,
+          "depth_cm": 272.0,
+          "tds_ppm": 434.0
+        },
+        {
+          "day": -3.5,
+          "depth_cm": 273.0,
+          "tds_ppm": 436.0
+        },
+        {
+          "day": -3.0,
+          "depth_cm": 274.0,
+          "tds_ppm": 438.0
+        },
+        {
+          "day": -2.5,
+          "depth_cm": 275.0,
+          "tds_ppm": 440.0
+        },
+        {
+          "day": -2.0,
+          "depth_cm": 276.0,
+          "tds_ppm": 442.0
+        },
+        {
+          "day": -1.5,
+          "depth_cm": 277.0,
+          "tds_ppm": 444.0
+        },
+        {
+          "day": -1.0,
+          "depth_cm": 278.0,
+          "tds_ppm": 446.0
+        },
+        {
+          "day": -0.5,
+          "depth_cm": 279.0,
+          "tds_ppm": 448.0
+        },
+        {
+          "day": 0.0,
+          "depth_cm": 280.0,
+          "tds_ppm": 450.0
+        }
+      ],
+      "alerts": [],
+      "neighbors": [],
+      "recovery_cm": null,
+      "flags": [
+        "TDS estimate is uncalibrated; review indicator only"
+      ],
+      "message": "Separate designed 30-day history, not inferred from the 90-second animation. No persistent deterioration trigger in this analysis window. Trend extrapolation is not a validated aquifer model.",
+      "reference_elevation_m": null,
+      "vertical_datum": null,
+      "aquifer_id": null,
+      "tds_calibrated": false,
+      "backtest": {
+        "mae_cm": 0.0,
+        "median_absolute_error_cm": 0.0,
+        "interval_coverage": 1.0,
+        "held_out_samples": 145,
+        "note": "chronological holdout; heuristic residual band, not calibrated confidence"
+      }
+    },
+    {
+      "schema_version": 1,
+      "well_id": "DEMO_006",
+      "source": "simulated",
+      "computed_at": 1793016000,
+      "valid_until": 1793016045,
+      "model_version": "guardian-1.0.0",
+      "model": "Theil-Sen / minute medians",
+      "quality": "ILLUSTRATIVE",
+      "risk": "NORMAL",
+      "window_hours": 720.0,
+      "sample_count": 721,
+      "aggregate_count": 721,
+      "source_start": 1790424000,
+      "source_end": 1793016000,
+      "depth_cm": 205.0,
+      "column_cm": 295.0,
+      "tds_ppm": 450.0,
+      "drawdown_cm_day": -0.5,
+      "tds_change_ppm_day": 4.0,
+      "depth_change_cm": -15.0,
+      "anomaly_score": 0.0,
+      "max_horizon_days": 60,
+      "critical_depth_cm": 360,
+      "time_to_critical_days": null,
+      "time_to_tds_review_days": 37.5,
+      "forecasts": [
+        {
+          "day": 0.0,
+          "depth_cm": 205.0,
+          "lower_cm": 204.0,
+          "upper_cm": 206.0,
+          "tds_ppm": 450.0
+        },
+        {
+          "day": 1.0,
+          "depth_cm": 204.5,
+          "lower_cm": 203.48346995453488,
+          "upper_cm": 205.51653004546512,
+          "tds_ppm": 454.0
+        },
+        {
+          "day": 7.0,
+          "depth_cm": 201.5,
+          "lower_cm": 200.38944458340282,
+          "upper_cm": 202.61055541659718,
+          "tds_ppm": 478.0
+        },
+        {
+          "day": 30.0,
+          "depth_cm": 190.0,
+          "lower_cm": 188.5857864376269,
+          "upper_cm": 191.4142135623731,
+          "tds_ppm": 570.0
+        },
+        {
+          "day": 60,
+          "depth_cm": 175.0,
+          "lower_cm": 173.26794919243113,
+          "upper_cm": 176.73205080756887,
+          "tds_ppm": 690.0
+        }
+      ],
+      "history": [
+        {
+          "day": -30.0,
+          "depth_cm": 220.0,
+          "tds_ppm": 330.0
+        },
+        {
+          "day": -29.5,
+          "depth_cm": 219.75,
+          "tds_ppm": 332.0
+        },
+        {
+          "day": -29.0,
+          "depth_cm": 219.5,
+          "tds_ppm": 334.0
+        },
+        {
+          "day": -28.5,
+          "depth_cm": 219.25,
+          "tds_ppm": 336.0
+        },
+        {
+          "day": -28.0,
+          "depth_cm": 219.0,
+          "tds_ppm": 338.0
+        },
+        {
+          "day": -27.5,
+          "depth_cm": 218.75,
+          "tds_ppm": 340.0
+        },
+        {
+          "day": -27.0,
+          "depth_cm": 218.5,
+          "tds_ppm": 342.0
+        },
+        {
+          "day": -26.5,
+          "depth_cm": 218.25,
+          "tds_ppm": 344.0
+        },
+        {
+          "day": -26.0,
+          "depth_cm": 218.0,
+          "tds_ppm": 346.0
+        },
+        {
+          "day": -25.5,
+          "depth_cm": 217.75,
+          "tds_ppm": 348.0
+        },
+        {
+          "day": -25.0,
+          "depth_cm": 217.5,
+          "tds_ppm": 350.0
+        },
+        {
+          "day": -24.5,
+          "depth_cm": 217.25,
+          "tds_ppm": 352.0
+        },
+        {
+          "day": -24.0,
+          "depth_cm": 217.0,
+          "tds_ppm": 354.0
+        },
+        {
+          "day": -23.5,
+          "depth_cm": 216.75,
+          "tds_ppm": 356.0
+        },
+        {
+          "day": -23.0,
+          "depth_cm": 216.5,
+          "tds_ppm": 358.0
+        },
+        {
+          "day": -22.5,
+          "depth_cm": 216.25,
+          "tds_ppm": 360.0
+        },
+        {
+          "day": -22.0,
+          "depth_cm": 216.0,
+          "tds_ppm": 362.0
+        },
+        {
+          "day": -21.5,
+          "depth_cm": 215.75,
+          "tds_ppm": 364.0
+        },
+        {
+          "day": -21.0,
+          "depth_cm": 215.5,
+          "tds_ppm": 366.0
+        },
+        {
+          "day": -20.5,
+          "depth_cm": 215.25,
+          "tds_ppm": 368.0
+        },
+        {
+          "day": -20.0,
+          "depth_cm": 215.0,
+          "tds_ppm": 370.0
+        },
+        {
+          "day": -19.5,
+          "depth_cm": 214.75,
+          "tds_ppm": 372.0
+        },
+        {
+          "day": -19.0,
+          "depth_cm": 214.5,
+          "tds_ppm": 374.0
+        },
+        {
+          "day": -18.5,
+          "depth_cm": 214.25,
+          "tds_ppm": 376.0
+        },
+        {
+          "day": -18.0,
+          "depth_cm": 214.0,
+          "tds_ppm": 378.0
+        },
+        {
+          "day": -17.5,
+          "depth_cm": 213.75,
+          "tds_ppm": 380.0
+        },
+        {
+          "day": -17.0,
+          "depth_cm": 213.5,
+          "tds_ppm": 382.0
+        },
+        {
+          "day": -16.5,
+          "depth_cm": 213.25,
+          "tds_ppm": 384.0
+        },
+        {
+          "day": -16.0,
+          "depth_cm": 213.0,
+          "tds_ppm": 386.0
+        },
+        {
+          "day": -15.5,
+          "depth_cm": 212.75,
+          "tds_ppm": 388.0
+        },
+        {
+          "day": -15.0,
+          "depth_cm": 212.5,
+          "tds_ppm": 390.0
+        },
+        {
+          "day": -14.5,
+          "depth_cm": 212.25,
+          "tds_ppm": 392.0
+        },
+        {
+          "day": -14.0,
+          "depth_cm": 212.0,
+          "tds_ppm": 394.0
+        },
+        {
+          "day": -13.5,
+          "depth_cm": 211.75,
+          "tds_ppm": 396.0
+        },
+        {
+          "day": -13.0,
+          "depth_cm": 211.5,
+          "tds_ppm": 398.0
+        },
+        {
+          "day": -12.5,
+          "depth_cm": 211.25,
+          "tds_ppm": 400.0
+        },
+        {
+          "day": -12.0,
+          "depth_cm": 211.0,
+          "tds_ppm": 402.0
+        },
+        {
+          "day": -11.5,
+          "depth_cm": 210.75,
+          "tds_ppm": 404.0
+        },
+        {
+          "day": -11.0,
+          "depth_cm": 210.5,
+          "tds_ppm": 406.0
+        },
+        {
+          "day": -10.5,
+          "depth_cm": 210.25,
+          "tds_ppm": 408.0
+        },
+        {
+          "day": -10.0,
+          "depth_cm": 210.0,
+          "tds_ppm": 410.0
+        },
+        {
+          "day": -9.5,
+          "depth_cm": 209.75,
+          "tds_ppm": 412.0
+        },
+        {
+          "day": -9.0,
+          "depth_cm": 209.5,
+          "tds_ppm": 414.0
+        },
+        {
+          "day": -8.5,
+          "depth_cm": 209.25,
+          "tds_ppm": 416.0
+        },
+        {
+          "day": -8.0,
+          "depth_cm": 209.0,
+          "tds_ppm": 418.0
+        },
+        {
+          "day": -7.5,
+          "depth_cm": 208.75,
+          "tds_ppm": 420.0
+        },
+        {
+          "day": -7.0,
+          "depth_cm": 208.5,
+          "tds_ppm": 422.0
+        },
+        {
+          "day": -6.5,
+          "depth_cm": 208.25,
+          "tds_ppm": 424.0
+        },
+        {
+          "day": -6.0,
+          "depth_cm": 208.0,
+          "tds_ppm": 426.0
+        },
+        {
+          "day": -5.5,
+          "depth_cm": 207.75,
+          "tds_ppm": 428.0
+        },
+        {
+          "day": -5.0,
+          "depth_cm": 207.5,
+          "tds_ppm": 430.0
+        },
+        {
+          "day": -4.5,
+          "depth_cm": 207.25,
+          "tds_ppm": 432.0
+        },
+        {
+          "day": -4.0,
+          "depth_cm": 207.0,
+          "tds_ppm": 434.0
+        },
+        {
+          "day": -3.5,
+          "depth_cm": 206.75,
+          "tds_ppm": 436.0
+        },
+        {
+          "day": -3.0,
+          "depth_cm": 206.5,
+          "tds_ppm": 438.0
+        },
+        {
+          "day": -2.5,
+          "depth_cm": 206.25,
+          "tds_ppm": 440.0
+        },
+        {
+          "day": -2.0,
+          "depth_cm": 206.0,
+          "tds_ppm": 442.0
+        },
+        {
+          "day": -1.5,
+          "depth_cm": 205.75,
+          "tds_ppm": 444.0
+        },
+        {
+          "day": -1.0,
+          "depth_cm": 205.5,
+          "tds_ppm": 446.0
+        },
+        {
+          "day": -0.5,
+          "depth_cm": 205.25,
+          "tds_ppm": 448.0
+        },
+        {
+          "day": 0.0,
+          "depth_cm": 205.0,
+          "tds_ppm": 450.0
+        }
+      ],
+      "alerts": [],
+      "neighbors": [],
+      "recovery_cm": null,
+      "flags": [
+        "TDS estimate is uncalibrated; review indicator only"
+      ],
+      "message": "Separate designed 30-day history, not inferred from the 90-second animation. No persistent deterioration trigger in this analysis window. Trend extrapolation is not a validated aquifer model.",
+      "reference_elevation_m": null,
+      "vertical_datum": null,
+      "aquifer_id": null,
+      "tds_calibrated": false,
+      "backtest": {
+        "mae_cm": 0.0,
+        "median_absolute_error_cm": 0.0,
+        "interval_coverage": 1.0,
+        "held_out_samples": 145,
+        "note": "chronological holdout; heuristic residual band, not calibrated confidence"
+      }
+    },
+    {
+      "schema_version": 1,
+      "well_id": "DEMO_007",
+      "source": "simulated",
+      "computed_at": 1793016000,
+      "valid_until": 1793016045,
+      "model_version": "guardian-1.0.0",
+      "model": "Theil-Sen / minute medians",
+      "quality": "ILLUSTRATIVE",
+      "risk": "NORMAL",
+      "window_hours": 720.0,
+      "sample_count": 721,
+      "aggregate_count": 721,
+      "source_start": 1790424000,
+      "source_end": 1793016000,
+      "depth_cm": 280.0,
+      "column_cm": 220.0,
+      "tds_ppm": 450.0,
+      "drawdown_cm_day": 2.0,
+      "tds_change_ppm_day": 4.0,
+      "depth_change_cm": 60.0,
+      "anomaly_score": 0.0,
+      "max_horizon_days": 60,
+      "critical_depth_cm": 360,
+      "time_to_critical_days": 40.0,
+      "time_to_tds_review_days": 37.5,
+      "forecasts": [
+        {
+          "day": 0.0,
+          "depth_cm": 280.0,
+          "lower_cm": 279.0,
+          "upper_cm": 281.0,
+          "tds_ppm": 450.0
+        },
+        {
+          "day": 1.0,
+          "depth_cm": 282.0,
+          "lower_cm": 280.9834699545349,
+          "upper_cm": 283.0165300454651,
+          "tds_ppm": 454.0
+        },
+        {
+          "day": 7.0,
+          "depth_cm": 294.0,
+          "lower_cm": 292.88944458340285,
+          "upper_cm": 295.11055541659715,
+          "tds_ppm": 478.0
+        },
+        {
+          "day": 30.0,
+          "depth_cm": 340.0,
+          "lower_cm": 338.5857864376269,
+          "upper_cm": 341.4142135623731,
+          "tds_ppm": 570.0
+        },
+        {
+          "day": 60,
+          "depth_cm": 400.0,
+          "lower_cm": 398.2679491924311,
+          "upper_cm": 401.7320508075689,
+          "tds_ppm": 690.0
+        }
+      ],
+      "history": [
+        {
+          "day": -30.0,
+          "depth_cm": 220.0,
+          "tds_ppm": 330.0
+        },
+        {
+          "day": -29.5,
+          "depth_cm": 221.0,
+          "tds_ppm": 332.0
+        },
+        {
+          "day": -29.0,
+          "depth_cm": 222.0,
+          "tds_ppm": 334.0
+        },
+        {
+          "day": -28.5,
+          "depth_cm": 223.0,
+          "tds_ppm": 336.0
+        },
+        {
+          "day": -28.0,
+          "depth_cm": 224.0,
+          "tds_ppm": 338.0
+        },
+        {
+          "day": -27.5,
+          "depth_cm": 225.0,
+          "tds_ppm": 340.0
+        },
+        {
+          "day": -27.0,
+          "depth_cm": 226.0,
+          "tds_ppm": 342.0
+        },
+        {
+          "day": -26.5,
+          "depth_cm": 227.0,
+          "tds_ppm": 344.0
+        },
+        {
+          "day": -26.0,
+          "depth_cm": 228.0,
+          "tds_ppm": 346.0
+        },
+        {
+          "day": -25.5,
+          "depth_cm": 229.0,
+          "tds_ppm": 348.0
+        },
+        {
+          "day": -25.0,
+          "depth_cm": 230.0,
+          "tds_ppm": 350.0
+        },
+        {
+          "day": -24.5,
+          "depth_cm": 231.0,
+          "tds_ppm": 352.0
+        },
+        {
+          "day": -24.0,
+          "depth_cm": 232.0,
+          "tds_ppm": 354.0
+        },
+        {
+          "day": -23.5,
+          "depth_cm": 233.0,
+          "tds_ppm": 356.0
+        },
+        {
+          "day": -23.0,
+          "depth_cm": 234.0,
+          "tds_ppm": 358.0
+        },
+        {
+          "day": -22.5,
+          "depth_cm": 235.0,
+          "tds_ppm": 360.0
+        },
+        {
+          "day": -22.0,
+          "depth_cm": 236.0,
+          "tds_ppm": 362.0
+        },
+        {
+          "day": -21.5,
+          "depth_cm": 237.0,
+          "tds_ppm": 364.0
+        },
+        {
+          "day": -21.0,
+          "depth_cm": 238.0,
+          "tds_ppm": 366.0
+        },
+        {
+          "day": -20.5,
+          "depth_cm": 239.0,
+          "tds_ppm": 368.0
+        },
+        {
+          "day": -20.0,
+          "depth_cm": 240.0,
+          "tds_ppm": 370.0
+        },
+        {
+          "day": -19.5,
+          "depth_cm": 241.0,
+          "tds_ppm": 372.0
+        },
+        {
+          "day": -19.0,
+          "depth_cm": 242.0,
+          "tds_ppm": 374.0
+        },
+        {
+          "day": -18.5,
+          "depth_cm": 243.0,
+          "tds_ppm": 376.0
+        },
+        {
+          "day": -18.0,
+          "depth_cm": 244.0,
+          "tds_ppm": 378.0
+        },
+        {
+          "day": -17.5,
+          "depth_cm": 245.0,
+          "tds_ppm": 380.0
+        },
+        {
+          "day": -17.0,
+          "depth_cm": 246.0,
+          "tds_ppm": 382.0
+        },
+        {
+          "day": -16.5,
+          "depth_cm": 247.0,
+          "tds_ppm": 384.0
+        },
+        {
+          "day": -16.0,
+          "depth_cm": 248.0,
+          "tds_ppm": 386.0
+        },
+        {
+          "day": -15.5,
+          "depth_cm": 249.0,
+          "tds_ppm": 388.0
+        },
+        {
+          "day": -15.0,
+          "depth_cm": 250.0,
+          "tds_ppm": 390.0
+        },
+        {
+          "day": -14.5,
+          "depth_cm": 251.0,
+          "tds_ppm": 392.0
+        },
+        {
+          "day": -14.0,
+          "depth_cm": 252.0,
+          "tds_ppm": 394.0
+        },
+        {
+          "day": -13.5,
+          "depth_cm": 253.0,
+          "tds_ppm": 396.0
+        },
+        {
+          "day": -13.0,
+          "depth_cm": 254.0,
+          "tds_ppm": 398.0
+        },
+        {
+          "day": -12.5,
+          "depth_cm": 255.0,
+          "tds_ppm": 400.0
+        },
+        {
+          "day": -12.0,
+          "depth_cm": 256.0,
+          "tds_ppm": 402.0
+        },
+        {
+          "day": -11.5,
+          "depth_cm": 257.0,
+          "tds_ppm": 404.0
+        },
+        {
+          "day": -11.0,
+          "depth_cm": 258.0,
+          "tds_ppm": 406.0
+        },
+        {
+          "day": -10.5,
+          "depth_cm": 259.0,
+          "tds_ppm": 408.0
+        },
+        {
+          "day": -10.0,
+          "depth_cm": 260.0,
+          "tds_ppm": 410.0
+        },
+        {
+          "day": -9.5,
+          "depth_cm": 261.0,
+          "tds_ppm": 412.0
+        },
+        {
+          "day": -9.0,
+          "depth_cm": 262.0,
+          "tds_ppm": 414.0
+        },
+        {
+          "day": -8.5,
+          "depth_cm": 263.0,
+          "tds_ppm": 416.0
+        },
+        {
+          "day": -8.0,
+          "depth_cm": 264.0,
+          "tds_ppm": 418.0
+        },
+        {
+          "day": -7.5,
+          "depth_cm": 265.0,
+          "tds_ppm": 420.0
+        },
+        {
+          "day": -7.0,
+          "depth_cm": 266.0,
+          "tds_ppm": 422.0
+        },
+        {
+          "day": -6.5,
+          "depth_cm": 267.0,
+          "tds_ppm": 424.0
+        },
+        {
+          "day": -6.0,
+          "depth_cm": 268.0,
+          "tds_ppm": 426.0
+        },
+        {
+          "day": -5.5,
+          "depth_cm": 269.0,
+          "tds_ppm": 428.0
+        },
+        {
+          "day": -5.0,
+          "depth_cm": 270.0,
+          "tds_ppm": 430.0
+        },
+        {
+          "day": -4.5,
+          "depth_cm": 271.0,
+          "tds_ppm": 432.0
+        },
+        {
+          "day": -4.0,
+          "depth_cm": 272.0,
+          "tds_ppm": 434.0
+        },
+        {
+          "day": -3.5,
+          "depth_cm": 273.0,
+          "tds_ppm": 436.0
+        },
+        {
+          "day": -3.0,
+          "depth_cm": 274.0,
+          "tds_ppm": 438.0
+        },
+        {
+          "day": -2.5,
+          "depth_cm": 275.0,
+          "tds_ppm": 440.0
+        },
+        {
+          "day": -2.0,
+          "depth_cm": 276.0,
+          "tds_ppm": 442.0
+        },
+        {
+          "day": -1.5,
+          "depth_cm": 277.0,
+          "tds_ppm": 444.0
+        },
+        {
+          "day": -1.0,
+          "depth_cm": 278.0,
+          "tds_ppm": 446.0
+        },
+        {
+          "day": -0.5,
+          "depth_cm": 279.0,
+          "tds_ppm": 448.0
+        },
+        {
+          "day": 0.0,
+          "depth_cm": 280.0,
+          "tds_ppm": 450.0
+        }
+      ],
+      "alerts": [],
+      "neighbors": [],
+      "recovery_cm": null,
+      "flags": [
+        "TDS estimate is uncalibrated; review indicator only"
+      ],
+      "message": "Separate designed 30-day history, not inferred from the 90-second animation. No persistent deterioration trigger in this analysis window. Trend extrapolation is not a validated aquifer model.",
+      "reference_elevation_m": null,
+      "vertical_datum": null,
+      "aquifer_id": null,
+      "tds_calibrated": false,
+      "backtest": {
+        "mae_cm": 0.0,
+        "median_absolute_error_cm": 0.0,
+        "interval_coverage": 1.0,
+        "held_out_samples": 145,
+        "note": "chronological holdout; heuristic residual band, not calibrated confidence"
+      }
+    },
+    {
+      "schema_version": 1,
+      "well_id": "DEMO_008",
+      "source": "simulated",
+      "computed_at": 1793016000,
+      "valid_until": 1793016045,
+      "model_version": "guardian-1.0.0",
+      "model": "Theil-Sen / minute medians",
+      "quality": "ILLUSTRATIVE",
+      "risk": "NORMAL",
+      "window_hours": 720.0,
+      "sample_count": 721,
+      "aggregate_count": 721,
+      "source_start": 1790424000,
+      "source_end": 1793016000,
+      "depth_cm": 280.0,
+      "column_cm": 220.0,
+      "tds_ppm": 450.0,
+      "drawdown_cm_day": 2.0,
+      "tds_change_ppm_day": 4.0,
+      "depth_change_cm": 60.0,
+      "anomaly_score": 0.0,
+      "max_horizon_days": 60,
+      "critical_depth_cm": 360,
+      "time_to_critical_days": 40.0,
+      "time_to_tds_review_days": 37.5,
+      "forecasts": [
+        {
+          "day": 0.0,
+          "depth_cm": 280.0,
+          "lower_cm": 279.0,
+          "upper_cm": 281.0,
+          "tds_ppm": 450.0
+        },
+        {
+          "day": 1.0,
+          "depth_cm": 282.0,
+          "lower_cm": 280.9834699545349,
+          "upper_cm": 283.0165300454651,
+          "tds_ppm": 454.0
+        },
+        {
+          "day": 7.0,
+          "depth_cm": 294.0,
+          "lower_cm": 292.88944458340285,
+          "upper_cm": 295.11055541659715,
+          "tds_ppm": 478.0
+        },
+        {
+          "day": 30.0,
+          "depth_cm": 340.0,
+          "lower_cm": 338.5857864376269,
+          "upper_cm": 341.4142135623731,
+          "tds_ppm": 570.0
+        },
+        {
+          "day": 60,
+          "depth_cm": 400.0,
+          "lower_cm": 398.2679491924311,
+          "upper_cm": 401.7320508075689,
+          "tds_ppm": 690.0
+        }
+      ],
+      "history": [
+        {
+          "day": -30.0,
+          "depth_cm": 220.0,
+          "tds_ppm": 330.0
+        },
+        {
+          "day": -29.5,
+          "depth_cm": 221.0,
+          "tds_ppm": 332.0
+        },
+        {
+          "day": -29.0,
+          "depth_cm": 222.0,
+          "tds_ppm": 334.0
+        },
+        {
+          "day": -28.5,
+          "depth_cm": 223.0,
+          "tds_ppm": 336.0
+        },
+        {
+          "day": -28.0,
+          "depth_cm": 224.0,
+          "tds_ppm": 338.0
+        },
+        {
+          "day": -27.5,
+          "depth_cm": 225.0,
+          "tds_ppm": 340.0
+        },
+        {
+          "day": -27.0,
+          "depth_cm": 226.0,
+          "tds_ppm": 342.0
+        },
+        {
+          "day": -26.5,
+          "depth_cm": 227.0,
+          "tds_ppm": 344.0
+        },
+        {
+          "day": -26.0,
+          "depth_cm": 228.0,
+          "tds_ppm": 346.0
+        },
+        {
+          "day": -25.5,
+          "depth_cm": 229.0,
+          "tds_ppm": 348.0
+        },
+        {
+          "day": -25.0,
+          "depth_cm": 230.0,
+          "tds_ppm": 350.0
+        },
+        {
+          "day": -24.5,
+          "depth_cm": 231.0,
+          "tds_ppm": 352.0
+        },
+        {
+          "day": -24.0,
+          "depth_cm": 232.0,
+          "tds_ppm": 354.0
+        },
+        {
+          "day": -23.5,
+          "depth_cm": 233.0,
+          "tds_ppm": 356.0
+        },
+        {
+          "day": -23.0,
+          "depth_cm": 234.0,
+          "tds_ppm": 358.0
+        },
+        {
+          "day": -22.5,
+          "depth_cm": 235.0,
+          "tds_ppm": 360.0
+        },
+        {
+          "day": -22.0,
+          "depth_cm": 236.0,
+          "tds_ppm": 362.0
+        },
+        {
+          "day": -21.5,
+          "depth_cm": 237.0,
+          "tds_ppm": 364.0
+        },
+        {
+          "day": -21.0,
+          "depth_cm": 238.0,
+          "tds_ppm": 366.0
+        },
+        {
+          "day": -20.5,
+          "depth_cm": 239.0,
+          "tds_ppm": 368.0
+        },
+        {
+          "day": -20.0,
+          "depth_cm": 240.0,
+          "tds_ppm": 370.0
+        },
+        {
+          "day": -19.5,
+          "depth_cm": 241.0,
+          "tds_ppm": 372.0
+        },
+        {
+          "day": -19.0,
+          "depth_cm": 242.0,
+          "tds_ppm": 374.0
+        },
+        {
+          "day": -18.5,
+          "depth_cm": 243.0,
+          "tds_ppm": 376.0
+        },
+        {
+          "day": -18.0,
+          "depth_cm": 244.0,
+          "tds_ppm": 378.0
+        },
+        {
+          "day": -17.5,
+          "depth_cm": 245.0,
+          "tds_ppm": 380.0
+        },
+        {
+          "day": -17.0,
+          "depth_cm": 246.0,
+          "tds_ppm": 382.0
+        },
+        {
+          "day": -16.5,
+          "depth_cm": 247.0,
+          "tds_ppm": 384.0
+        },
+        {
+          "day": -16.0,
+          "depth_cm": 248.0,
+          "tds_ppm": 386.0
+        },
+        {
+          "day": -15.5,
+          "depth_cm": 249.0,
+          "tds_ppm": 388.0
+        },
+        {
+          "day": -15.0,
+          "depth_cm": 250.0,
+          "tds_ppm": 390.0
+        },
+        {
+          "day": -14.5,
+          "depth_cm": 251.0,
+          "tds_ppm": 392.0
+        },
+        {
+          "day": -14.0,
+          "depth_cm": 252.0,
+          "tds_ppm": 394.0
+        },
+        {
+          "day": -13.5,
+          "depth_cm": 253.0,
+          "tds_ppm": 396.0
+        },
+        {
+          "day": -13.0,
+          "depth_cm": 254.0,
+          "tds_ppm": 398.0
+        },
+        {
+          "day": -12.5,
+          "depth_cm": 255.0,
+          "tds_ppm": 400.0
+        },
+        {
+          "day": -12.0,
+          "depth_cm": 256.0,
+          "tds_ppm": 402.0
+        },
+        {
+          "day": -11.5,
+          "depth_cm": 257.0,
+          "tds_ppm": 404.0
+        },
+        {
+          "day": -11.0,
+          "depth_cm": 258.0,
+          "tds_ppm": 406.0
+        },
+        {
+          "day": -10.5,
+          "depth_cm": 259.0,
+          "tds_ppm": 408.0
+        },
+        {
+          "day": -10.0,
+          "depth_cm": 260.0,
+          "tds_ppm": 410.0
+        },
+        {
+          "day": -9.5,
+          "depth_cm": 261.0,
+          "tds_ppm": 412.0
+        },
+        {
+          "day": -9.0,
+          "depth_cm": 262.0,
+          "tds_ppm": 414.0
+        },
+        {
+          "day": -8.5,
+          "depth_cm": 263.0,
+          "tds_ppm": 416.0
+        },
+        {
+          "day": -8.0,
+          "depth_cm": 264.0,
+          "tds_ppm": 418.0
+        },
+        {
+          "day": -7.5,
+          "depth_cm": 265.0,
+          "tds_ppm": 420.0
+        },
+        {
+          "day": -7.0,
+          "depth_cm": 266.0,
+          "tds_ppm": 422.0
+        },
+        {
+          "day": -6.5,
+          "depth_cm": 267.0,
+          "tds_ppm": 424.0
+        },
+        {
+          "day": -6.0,
+          "depth_cm": 268.0,
+          "tds_ppm": 426.0
+        },
+        {
+          "day": -5.5,
+          "depth_cm": 269.0,
+          "tds_ppm": 428.0
+        },
+        {
+          "day": -5.0,
+          "depth_cm": 270.0,
+          "tds_ppm": 430.0
+        },
+        {
+          "day": -4.5,
+          "depth_cm": 271.0,
+          "tds_ppm": 432.0
+        },
+        {
+          "day": -4.0,
+          "depth_cm": 272.0,
+          "tds_ppm": 434.0
+        },
+        {
+          "day": -3.5,
+          "depth_cm": 273.0,
+          "tds_ppm": 436.0
+        },
+        {
+          "day": -3.0,
+          "depth_cm": 274.0,
+          "tds_ppm": 438.0
+        },
+        {
+          "day": -2.5,
+          "depth_cm": 275.0,
+          "tds_ppm": 440.0
+        },
+        {
+          "day": -2.0,
+          "depth_cm": 276.0,
+          "tds_ppm": 442.0
+        },
+        {
+          "day": -1.5,
+          "depth_cm": 277.0,
+          "tds_ppm": 444.0
+        },
+        {
+          "day": -1.0,
+          "depth_cm": 278.0,
+          "tds_ppm": 446.0
+        },
+        {
+          "day": -0.5,
+          "depth_cm": 279.0,
+          "tds_ppm": 448.0
+        },
+        {
+          "day": 0.0,
+          "depth_cm": 280.0,
+          "tds_ppm": 450.0
+        }
+      ],
+      "alerts": [],
+      "neighbors": [],
+      "recovery_cm": null,
+      "flags": [
+        "TDS estimate is uncalibrated; review indicator only"
+      ],
+      "message": "Separate designed 30-day history, not inferred from the 90-second animation. No persistent deterioration trigger in this analysis window. Trend extrapolation is not a validated aquifer model.",
+      "reference_elevation_m": null,
+      "vertical_datum": null,
+      "aquifer_id": null,
+      "tds_calibrated": false,
+      "backtest": {
+        "mae_cm": 0.0,
+        "median_absolute_error_cm": 0.0,
+        "interval_coverage": 1.0,
+        "held_out_samples": 145,
+        "note": "chronological holdout; heuristic residual band, not calibrated confidence"
+      }
+    },
+    {
+      "schema_version": 1,
+      "well_id": "DEMO_009",
+      "source": "simulated",
+      "computed_at": 1793016000,
+      "valid_until": 1793016045,
+      "model_version": "guardian-1.0.0",
+      "model": "Theil-Sen / minute medians",
+      "quality": "ILLUSTRATIVE",
+      "risk": "NORMAL",
+      "window_hours": 720.0,
+      "sample_count": 721,
+      "aggregate_count": 721,
+      "source_start": 1790424000,
+      "source_end": 1793016000,
+      "depth_cm": 205.0,
+      "column_cm": 295.0,
+      "tds_ppm": 450.0,
+      "drawdown_cm_day": -0.5,
+      "tds_change_ppm_day": 4.0,
+      "depth_change_cm": -15.0,
+      "anomaly_score": 0.0,
+      "max_horizon_days": 60,
+      "critical_depth_cm": 360,
+      "time_to_critical_days": null,
+      "time_to_tds_review_days": 37.5,
+      "forecasts": [
+        {
+          "day": 0.0,
+          "depth_cm": 205.0,
+          "lower_cm": 204.0,
+          "upper_cm": 206.0,
+          "tds_ppm": 450.0
+        },
+        {
+          "day": 1.0,
+          "depth_cm": 204.5,
+          "lower_cm": 203.48346995453488,
+          "upper_cm": 205.51653004546512,
+          "tds_ppm": 454.0
+        },
+        {
+          "day": 7.0,
+          "depth_cm": 201.5,
+          "lower_cm": 200.38944458340282,
+          "upper_cm": 202.61055541659718,
+          "tds_ppm": 478.0
+        },
+        {
+          "day": 30.0,
+          "depth_cm": 190.0,
+          "lower_cm": 188.5857864376269,
+          "upper_cm": 191.4142135623731,
+          "tds_ppm": 570.0
+        },
+        {
+          "day": 60,
+          "depth_cm": 175.0,
+          "lower_cm": 173.26794919243113,
+          "upper_cm": 176.73205080756887,
+          "tds_ppm": 690.0
+        }
+      ],
+      "history": [
+        {
+          "day": -30.0,
+          "depth_cm": 220.0,
+          "tds_ppm": 330.0
+        },
+        {
+          "day": -29.5,
+          "depth_cm": 219.75,
+          "tds_ppm": 332.0
+        },
+        {
+          "day": -29.0,
+          "depth_cm": 219.5,
+          "tds_ppm": 334.0
+        },
+        {
+          "day": -28.5,
+          "depth_cm": 219.25,
+          "tds_ppm": 336.0
+        },
+        {
+          "day": -28.0,
+          "depth_cm": 219.0,
+          "tds_ppm": 338.0
+        },
+        {
+          "day": -27.5,
+          "depth_cm": 218.75,
+          "tds_ppm": 340.0
+        },
+        {
+          "day": -27.0,
+          "depth_cm": 218.5,
+          "tds_ppm": 342.0
+        },
+        {
+          "day": -26.5,
+          "depth_cm": 218.25,
+          "tds_ppm": 344.0
+        },
+        {
+          "day": -26.0,
+          "depth_cm": 218.0,
+          "tds_ppm": 346.0
+        },
+        {
+          "day": -25.5,
+          "depth_cm": 217.75,
+          "tds_ppm": 348.0
+        },
+        {
+          "day": -25.0,
+          "depth_cm": 217.5,
+          "tds_ppm": 350.0
+        },
+        {
+          "day": -24.5,
+          "depth_cm": 217.25,
+          "tds_ppm": 352.0
+        },
+        {
+          "day": -24.0,
+          "depth_cm": 217.0,
+          "tds_ppm": 354.0
+        },
+        {
+          "day": -23.5,
+          "depth_cm": 216.75,
+          "tds_ppm": 356.0
+        },
+        {
+          "day": -23.0,
+          "depth_cm": 216.5,
+          "tds_ppm": 358.0
+        },
+        {
+          "day": -22.5,
+          "depth_cm": 216.25,
+          "tds_ppm": 360.0
+        },
+        {
+          "day": -22.0,
+          "depth_cm": 216.0,
+          "tds_ppm": 362.0
+        },
+        {
+          "day": -21.5,
+          "depth_cm": 215.75,
+          "tds_ppm": 364.0
+        },
+        {
+          "day": -21.0,
+          "depth_cm": 215.5,
+          "tds_ppm": 366.0
+        },
+        {
+          "day": -20.5,
+          "depth_cm": 215.25,
+          "tds_ppm": 368.0
+        },
+        {
+          "day": -20.0,
+          "depth_cm": 215.0,
+          "tds_ppm": 370.0
+        },
+        {
+          "day": -19.5,
+          "depth_cm": 214.75,
+          "tds_ppm": 372.0
+        },
+        {
+          "day": -19.0,
+          "depth_cm": 214.5,
+          "tds_ppm": 374.0
+        },
+        {
+          "day": -18.5,
+          "depth_cm": 214.25,
+          "tds_ppm": 376.0
+        },
+        {
+          "day": -18.0,
+          "depth_cm": 214.0,
+          "tds_ppm": 378.0
+        },
+        {
+          "day": -17.5,
+          "depth_cm": 213.75,
+          "tds_ppm": 380.0
+        },
+        {
+          "day": -17.0,
+          "depth_cm": 213.5,
+          "tds_ppm": 382.0
+        },
+        {
+          "day": -16.5,
+          "depth_cm": 213.25,
+          "tds_ppm": 384.0
+        },
+        {
+          "day": -16.0,
+          "depth_cm": 213.0,
+          "tds_ppm": 386.0
+        },
+        {
+          "day": -15.5,
+          "depth_cm": 212.75,
+          "tds_ppm": 388.0
+        },
+        {
+          "day": -15.0,
+          "depth_cm": 212.5,
+          "tds_ppm": 390.0
+        },
+        {
+          "day": -14.5,
+          "depth_cm": 212.25,
+          "tds_ppm": 392.0
+        },
+        {
+          "day": -14.0,
+          "depth_cm": 212.0,
+          "tds_ppm": 394.0
+        },
+        {
+          "day": -13.5,
+          "depth_cm": 211.75,
+          "tds_ppm": 396.0
+        },
+        {
+          "day": -13.0,
+          "depth_cm": 211.5,
+          "tds_ppm": 398.0
+        },
+        {
+          "day": -12.5,
+          "depth_cm": 211.25,
+          "tds_ppm": 400.0
+        },
+        {
+          "day": -12.0,
+          "depth_cm": 211.0,
+          "tds_ppm": 402.0
+        },
+        {
+          "day": -11.5,
+          "depth_cm": 210.75,
+          "tds_ppm": 404.0
+        },
+        {
+          "day": -11.0,
+          "depth_cm": 210.5,
+          "tds_ppm": 406.0
+        },
+        {
+          "day": -10.5,
+          "depth_cm": 210.25,
+          "tds_ppm": 408.0
+        },
+        {
+          "day": -10.0,
+          "depth_cm": 210.0,
+          "tds_ppm": 410.0
+        },
+        {
+          "day": -9.5,
+          "depth_cm": 209.75,
+          "tds_ppm": 412.0
+        },
+        {
+          "day": -9.0,
+          "depth_cm": 209.5,
+          "tds_ppm": 414.0
+        },
+        {
+          "day": -8.5,
+          "depth_cm": 209.25,
+          "tds_ppm": 416.0
+        },
+        {
+          "day": -8.0,
+          "depth_cm": 209.0,
+          "tds_ppm": 418.0
+        },
+        {
+          "day": -7.5,
+          "depth_cm": 208.75,
+          "tds_ppm": 420.0
+        },
+        {
+          "day": -7.0,
+          "depth_cm": 208.5,
+          "tds_ppm": 422.0
+        },
+        {
+          "day": -6.5,
+          "depth_cm": 208.25,
+          "tds_ppm": 424.0
+        },
+        {
+          "day": -6.0,
+          "depth_cm": 208.0,
+          "tds_ppm": 426.0
+        },
+        {
+          "day": -5.5,
+          "depth_cm": 207.75,
+          "tds_ppm": 428.0
+        },
+        {
+          "day": -5.0,
+          "depth_cm": 207.5,
+          "tds_ppm": 430.0
+        },
+        {
+          "day": -4.5,
+          "depth_cm": 207.25,
+          "tds_ppm": 432.0
+        },
+        {
+          "day": -4.0,
+          "depth_cm": 207.0,
+          "tds_ppm": 434.0
+        },
+        {
+          "day": -3.5,
+          "depth_cm": 206.75,
+          "tds_ppm": 436.0
+        },
+        {
+          "day": -3.0,
+          "depth_cm": 206.5,
+          "tds_ppm": 438.0
+        },
+        {
+          "day": -2.5,
+          "depth_cm": 206.25,
+          "tds_ppm": 440.0
+        },
+        {
+          "day": -2.0,
+          "depth_cm": 206.0,
+          "tds_ppm": 442.0
+        },
+        {
+          "day": -1.5,
+          "depth_cm": 205.75,
+          "tds_ppm": 444.0
+        },
+        {
+          "day": -1.0,
+          "depth_cm": 205.5,
+          "tds_ppm": 446.0
+        },
+        {
+          "day": -0.5,
+          "depth_cm": 205.25,
+          "tds_ppm": 448.0
+        },
+        {
+          "day": 0.0,
+          "depth_cm": 205.0,
+          "tds_ppm": 450.0
+        }
+      ],
+      "alerts": [],
+      "neighbors": [],
+      "recovery_cm": null,
+      "flags": [
+        "TDS estimate is uncalibrated; review indicator only"
+      ],
+      "message": "Separate designed 30-day history, not inferred from the 90-second animation. No persistent deterioration trigger in this analysis window. Trend extrapolation is not a validated aquifer model.",
+      "reference_elevation_m": null,
+      "vertical_datum": null,
+      "aquifer_id": null,
+      "tds_calibrated": false,
+      "backtest": {
+        "mae_cm": 0.0,
+        "median_absolute_error_cm": 0.0,
+        "interval_coverage": 1.0,
+        "held_out_samples": 145,
+        "note": "chronological holdout; heuristic residual band, not calibrated confidence"
+      }
+    },
+    {
+      "schema_version": 1,
+      "well_id": "DEMO_010",
+      "source": "simulated",
+      "computed_at": 1793016000,
+      "valid_until": 1793016045,
+      "model_version": "guardian-1.0.0",
+      "model": "Theil-Sen / minute medians",
+      "quality": "ILLUSTRATIVE",
+      "risk": "NORMAL",
+      "window_hours": 720.0,
+      "sample_count": 721,
+      "aggregate_count": 721,
+      "source_start": 1790424000,
+      "source_end": 1793016000,
+      "depth_cm": 280.0,
+      "column_cm": 220.0,
+      "tds_ppm": 450.0,
+      "drawdown_cm_day": 2.0,
+      "tds_change_ppm_day": 4.0,
+      "depth_change_cm": 60.0,
+      "anomaly_score": 0.0,
+      "max_horizon_days": 60,
+      "critical_depth_cm": 360,
+      "time_to_critical_days": 40.0,
+      "time_to_tds_review_days": 37.5,
+      "forecasts": [
+        {
+          "day": 0.0,
+          "depth_cm": 280.0,
+          "lower_cm": 279.0,
+          "upper_cm": 281.0,
+          "tds_ppm": 450.0
+        },
+        {
+          "day": 1.0,
+          "depth_cm": 282.0,
+          "lower_cm": 280.9834699545349,
+          "upper_cm": 283.0165300454651,
+          "tds_ppm": 454.0
+        },
+        {
+          "day": 7.0,
+          "depth_cm": 294.0,
+          "lower_cm": 292.88944458340285,
+          "upper_cm": 295.11055541659715,
+          "tds_ppm": 478.0
+        },
+        {
+          "day": 30.0,
+          "depth_cm": 340.0,
+          "lower_cm": 338.5857864376269,
+          "upper_cm": 341.4142135623731,
+          "tds_ppm": 570.0
+        },
+        {
+          "day": 60,
+          "depth_cm": 400.0,
+          "lower_cm": 398.2679491924311,
+          "upper_cm": 401.7320508075689,
+          "tds_ppm": 690.0
+        }
+      ],
+      "history": [
+        {
+          "day": -30.0,
+          "depth_cm": 220.0,
+          "tds_ppm": 330.0
+        },
+        {
+          "day": -29.5,
+          "depth_cm": 221.0,
+          "tds_ppm": 332.0
+        },
+        {
+          "day": -29.0,
+          "depth_cm": 222.0,
+          "tds_ppm": 334.0
+        },
+        {
+          "day": -28.5,
+          "depth_cm": 223.0,
+          "tds_ppm": 336.0
+        },
+        {
+          "day": -28.0,
+          "depth_cm": 224.0,
+          "tds_ppm": 338.0
+        },
+        {
+          "day": -27.5,
+          "depth_cm": 225.0,
+          "tds_ppm": 340.0
+        },
+        {
+          "day": -27.0,
+          "depth_cm": 226.0,
+          "tds_ppm": 342.0
+        },
+        {
+          "day": -26.5,
+          "depth_cm": 227.0,
+          "tds_ppm": 344.0
+        },
+        {
+          "day": -26.0,
+          "depth_cm": 228.0,
+          "tds_ppm": 346.0
+        },
+        {
+          "day": -25.5,
+          "depth_cm": 229.0,
+          "tds_ppm": 348.0
+        },
+        {
+          "day": -25.0,
+          "depth_cm": 230.0,
+          "tds_ppm": 350.0
+        },
+        {
+          "day": -24.5,
+          "depth_cm": 231.0,
+          "tds_ppm": 352.0
+        },
+        {
+          "day": -24.0,
+          "depth_cm": 232.0,
+          "tds_ppm": 354.0
+        },
+        {
+          "day": -23.5,
+          "depth_cm": 233.0,
+          "tds_ppm": 356.0
+        },
+        {
+          "day": -23.0,
+          "depth_cm": 234.0,
+          "tds_ppm": 358.0
+        },
+        {
+          "day": -22.5,
+          "depth_cm": 235.0,
+          "tds_ppm": 360.0
+        },
+        {
+          "day": -22.0,
+          "depth_cm": 236.0,
+          "tds_ppm": 362.0
+        },
+        {
+          "day": -21.5,
+          "depth_cm": 237.0,
+          "tds_ppm": 364.0
+        },
+        {
+          "day": -21.0,
+          "depth_cm": 238.0,
+          "tds_ppm": 366.0
+        },
+        {
+          "day": -20.5,
+          "depth_cm": 239.0,
+          "tds_ppm": 368.0
+        },
+        {
+          "day": -20.0,
+          "depth_cm": 240.0,
+          "tds_ppm": 370.0
+        },
+        {
+          "day": -19.5,
+          "depth_cm": 241.0,
+          "tds_ppm": 372.0
+        },
+        {
+          "day": -19.0,
+          "depth_cm": 242.0,
+          "tds_ppm": 374.0
+        },
+        {
+          "day": -18.5,
+          "depth_cm": 243.0,
+          "tds_ppm": 376.0
+        },
+        {
+          "day": -18.0,
+          "depth_cm": 244.0,
+          "tds_ppm": 378.0
+        },
+        {
+          "day": -17.5,
+          "depth_cm": 245.0,
+          "tds_ppm": 380.0
+        },
+        {
+          "day": -17.0,
+          "depth_cm": 246.0,
+          "tds_ppm": 382.0
+        },
+        {
+          "day": -16.5,
+          "depth_cm": 247.0,
+          "tds_ppm": 384.0
+        },
+        {
+          "day": -16.0,
+          "depth_cm": 248.0,
+          "tds_ppm": 386.0
+        },
+        {
+          "day": -15.5,
+          "depth_cm": 249.0,
+          "tds_ppm": 388.0
+        },
+        {
+          "day": -15.0,
+          "depth_cm": 250.0,
+          "tds_ppm": 390.0
+        },
+        {
+          "day": -14.5,
+          "depth_cm": 251.0,
+          "tds_ppm": 392.0
+        },
+        {
+          "day": -14.0,
+          "depth_cm": 252.0,
+          "tds_ppm": 394.0
+        },
+        {
+          "day": -13.5,
+          "depth_cm": 253.0,
+          "tds_ppm": 396.0
+        },
+        {
+          "day": -13.0,
+          "depth_cm": 254.0,
+          "tds_ppm": 398.0
+        },
+        {
+          "day": -12.5,
+          "depth_cm": 255.0,
+          "tds_ppm": 400.0
+        },
+        {
+          "day": -12.0,
+          "depth_cm": 256.0,
+          "tds_ppm": 402.0
+        },
+        {
+          "day": -11.5,
+          "depth_cm": 257.0,
+          "tds_ppm": 404.0
+        },
+        {
+          "day": -11.0,
+          "depth_cm": 258.0,
+          "tds_ppm": 406.0
+        },
+        {
+          "day": -10.5,
+          "depth_cm": 259.0,
+          "tds_ppm": 408.0
+        },
+        {
+          "day": -10.0,
+          "depth_cm": 260.0,
+          "tds_ppm": 410.0
+        },
+        {
+          "day": -9.5,
+          "depth_cm": 261.0,
+          "tds_ppm": 412.0
+        },
+        {
+          "day": -9.0,
+          "depth_cm": 262.0,
+          "tds_ppm": 414.0
+        },
+        {
+          "day": -8.5,
+          "depth_cm": 263.0,
+          "tds_ppm": 416.0
+        },
+        {
+          "day": -8.0,
+          "depth_cm": 264.0,
+          "tds_ppm": 418.0
+        },
+        {
+          "day": -7.5,
+          "depth_cm": 265.0,
+          "tds_ppm": 420.0
+        },
+        {
+          "day": -7.0,
+          "depth_cm": 266.0,
+          "tds_ppm": 422.0
+        },
+        {
+          "day": -6.5,
+          "depth_cm": 267.0,
+          "tds_ppm": 424.0
+        },
+        {
+          "day": -6.0,
+          "depth_cm": 268.0,
+          "tds_ppm": 426.0
+        },
+        {
+          "day": -5.5,
+          "depth_cm": 269.0,
+          "tds_ppm": 428.0
+        },
+        {
+          "day": -5.0,
+          "depth_cm": 270.0,
+          "tds_ppm": 430.0
+        },
+        {
+          "day": -4.5,
+          "depth_cm": 271.0,
+          "tds_ppm": 432.0
+        },
+        {
+          "day": -4.0,
+          "depth_cm": 272.0,
+          "tds_ppm": 434.0
+        },
+        {
+          "day": -3.5,
+          "depth_cm": 273.0,
+          "tds_ppm": 436.0
+        },
+        {
+          "day": -3.0,
+          "depth_cm": 274.0,
+          "tds_ppm": 438.0
+        },
+        {
+          "day": -2.5,
+          "depth_cm": 275.0,
+          "tds_ppm": 440.0
+        },
+        {
+          "day": -2.0,
+          "depth_cm": 276.0,
+          "tds_ppm": 442.0
+        },
+        {
+          "day": -1.5,
+          "depth_cm": 277.0,
+          "tds_ppm": 444.0
+        },
+        {
+          "day": -1.0,
+          "depth_cm": 278.0,
+          "tds_ppm": 446.0
+        },
+        {
+          "day": -0.5,
+          "depth_cm": 279.0,
+          "tds_ppm": 448.0
+        },
+        {
+          "day": 0.0,
+          "depth_cm": 280.0,
+          "tds_ppm": 450.0
+        }
+      ],
+      "alerts": [],
+      "neighbors": [],
+      "recovery_cm": null,
+      "flags": [
+        "TDS estimate is uncalibrated; review indicator only"
+      ],
+      "message": "Separate designed 30-day history, not inferred from the 90-second animation. No persistent deterioration trigger in this analysis window. Trend extrapolation is not a validated aquifer model.",
+      "reference_elevation_m": null,
+      "vertical_datum": null,
+      "aquifer_id": null,
+      "tds_calibrated": false,
+      "backtest": {
+        "mae_cm": 0.0,
+        "median_absolute_error_cm": 0.0,
+        "interval_coverage": 1.0,
+        "held_out_samples": 145,
+        "note": "chronological holdout; heuristic residual band, not calibrated confidence"
+      }
+    }
+  ]
+}
