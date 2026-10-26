@@ -36,6 +36,22 @@ This project aligns with UN SDG 6 (Clean Water and Sanitation)—focusing on Tar
 
 ---
 
+## Technology Stack
+
+- **Embedded hardware:** ESP32-S3, HC-SR04 ultrasonic distance sensor, and TDS Meter V1.0 probe
+- **Firmware:** Arduino framework for ESP32, C++, NTP time synchronisation
+- **Messaging:** MQTT over TLS using HiveMQ Cloud
+- **Digital twin:** Unity 6 and C#
+- **Cloud monitor:** Python 3, Paho MQTT, python-dotenv, and pytest
+- **Decision support:** Python, SQLite, and the optional Guardian service
+- **Simulation:** Wokwi-compatible ESP32-S3 circuit and sensor simulation
+
+Major third-party libraries and services are used under their respective
+licenses. See [`requirements.txt`](requirements.txt), the component
+documentation, and the [MIT License](LICENSE).
+
+---
+
 ## What it actually does
 
 Most groundwater monitoring in our context still happens through periodic manual surveys — someone walks out, drops a tape or a rope down a well, writes a number in a register. By the time that number reaches a decision-maker, the situation on the ground has already moved on.
@@ -168,6 +184,11 @@ Built by the AquaTwin team as part of CATCH_VR Summer School 2026 (GIK Institute
 | Faisal Iqbal | Team lead, project coordination, system integration, and final documentation |
 | Muhammad Rahat Shafi | Unity digital-twin development and dashboard implementation |
 | Muhammad Ahmed Raza | Embedded coding, sensor integration, and firmware work |
+| Abdul Hadi Munir | Cloud-side spatial mapping and monitoring |
+
+### Kiro usage
+
+Kiro was not used in the development of this project.
 
 ## License
 
