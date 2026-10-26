@@ -23,13 +23,14 @@ This project aligns with UN SDG 6 (Clean Water and Sanitation)—focusing on Tar
 │   └── README.md
 ├── cloud/                   # MQTT broker setup
 │   └── README.md
+├── aquatwin_backend/        # Aggregation, validation, SQLite, and NumPy IDW
+├── examples/                # Clearly labelled simulated multi-well input
+├── generate_spatial_grid.py # Unity-ready depth/TDS JSON generator
+├── SPATIAL_MAPPING.md       # IDW method, units, commands, and hand-off format
 ├── unity/                   # Unity digital twin project
 │   ├── Assets/              # Scripts, materials, prefabs, scenes
 │   ├── Packages/
 │   ├── ProjectSettings/
-│   └── README.md
-├── data/                    # Recorded sensor data
-│   ├── demo_40_second_reading.jsonl
 │   └── README.md
 └── README.md                # ← You are here
 ```
@@ -47,7 +48,7 @@ AquaTwin replaces that with a small ESP32-based node sitting at the well head th
 3. Reads a TDS probe to get a sense of dissolved solids in the water (→ salinity / quality proxy)
 4. Packages all of it into a JSON payload and publishes it over MQTT to HiveMQ Cloud
 
-Those payloads drive a runtime-discovered network of 3D well twins built in Unity — the water plane in the scene actually drops as the physical water level drops, and the tint of the water shifts as the readings change.
+That payload then drives a 3D digital twin of the well built in Unity — the water plane in the scene actually drops as the physical water level drops, and the tint of the water shifts as the readings change.
 
 ---
 
@@ -58,9 +59,13 @@ ESP32-S3 sensors
         ↓
 HiveMQ Cloud (MQTT TLS, port 8883)
         ↓
-Unity Digital Twin (subscribes via WSS, port 8884)
+Python backend (validation → SQLite → NumPy IDW)
         ↓
-Runtime well registry -> multi-well geological dashboard, selection and per-well history
+REST / WebSocket API (port 8000)
+        ↓
+Unity Digital Twin / live browser dashboard
+        ↓
+3D visualization: water level, TDS colour, pH, dashboard
 ```
 
 ---
@@ -99,35 +104,57 @@ See [`firmware/README.md`](firmware/README.md).
 
 1. Install the **ESP32 board package** in Arduino IDE (Boards Manager → search `esp32`).
 2. Board settings: **ESP32S3 Dev Module**, USB CDC on boot enabled.
-3. Open [`firmware/sketch.ino`](firmware/sketch.ino), set your Wi-Fi and MQTT credentials, upload.
+3. Copy `firmware/secrets.example.h` to `firmware/secrets.h`, fill in Wi-Fi/MQTT credentials, then upload `firmware/sketch.ino`.
 4. Serial Monitor at **115200 baud** — sensor data and MQTT status.
 
 ### 2. Cloud Broker
 
-See [`cloud/README.md`](cloud/README.md) for HiveMQ Cloud setup, broker config, and troubleshooting.
+See [`cloud/README.md`](cloud/README.md) for HiveMQ Cloud setup, broker config, the
+frozen telemetry contract, and the cloud monitor commands.
 
 ### 3. Unity Digital Twin
 
 See [`unity/README.md`](unity/README.md).
 
-1. Open the `unity/` folder as a project in Unity Hub (Unity 6000.3.2f1+).
-2. Select **AquaTwin → MQTT Connection Setup** → enter credentials → Save, or use the offline **Test demo** button after the connection check.
-3. Enter Play Mode — the dashboard checks HiveMQ first; disconnected users can replay the local ten-well JSON demo.
+1. Start the Python backend described below.
+2. Open the `unity/` folder in Unity Hub (Unity 6000.3.2f1+).
+3. The Unity developer consumes `/api/wells/live` and `/ws/terrain-matrix`;
+   Unity must not connect directly to HiveMQ.
+
+### Multi-Well IDW Grid
+
+See [`SPATIAL_MAPPING.md`](SPATIAL_MAPPING.md) for the tested multi-well
+aggregation and NumPy IDW workflow. It produces separate flat row-major depth
+and TDS arrays for Unity, plus an optional local SVG surface preview.
+
+For live operation:
+
+```bash
+source .venv/bin/activate
+python -m aquatwin_backend
+```
+
+Open `http://127.0.0.1:8000` for the event-driven live map. For a continuous
+five-well test, run `python mock_publisher.py --count 0 --wells 5 --interval 3`
+in another terminal.
 
 ---
 
 ## Data Contract
 
-Every layer (firmware → broker → Unity) agrees on these keys:
+Firmware and the Python ingestion layer agree on these MQTT keys:
 
 | Key | Unit | Description |
 |---|---|---|
-| `device` | — | Device identifier (e.g. `well01`) |
-| `distance_cm` | cm | Distance from sensor to water surface |
+| `well_id` | — | Well identifier (`WELL_WOKWI_01`) |
+| `location.lat`, `location.lng` | degrees | Well coordinates |
+| `depth_to_water_cm` | cm | Sensor-to-water distance |
+| `water_column_height_cm` | cm | Water column height |
 | `tds_ppm` | ppm | Total dissolved solids |
-| `ph` | — | pH estimate |
+| `status` | — | Device state, such as `ONLINE` |
+| `timestamp` | Unix seconds | Device publication time |
 
-The Unity fleet dashboard also accepts the canonical `well_id`, `location`, `depth_to_water_cm`, `water_column_height_cm`, `tds_ppm`, `status`, `timestamp` contract on `aquatwin/well/+/telemetry`. The existing firmware contract remains supported on `digitaltwin/+/sensors`. See the [Unity guide](unity/README.md) for exact payloads, runtime discovery, calibration, and data-age behaviour.
+Changing these keys requires updating firmware, Unity, and any backend in between.
 
 ---
 
