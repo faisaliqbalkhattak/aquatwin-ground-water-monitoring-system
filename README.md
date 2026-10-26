@@ -12,7 +12,7 @@ This project aligns with UN SDG 6 (Clean Water and Sanitation)—focusing on Tar
 
 ```
 ├── firmware/                # ESP32-S3 Arduino sketches
-│   ├── sketch.ino           # Production firmware (MQTT + Wi-Fi)
+│   ├── sketch/sketch.ino    # Production firmware (MQTT + Wi-Fi)
 │   ├── sketch_serial_only.ino  # Serial-only version (bench testing)
 │   ├── hc-sr04_test_code.ino   # Ultrasonic sensor standalone test
 │   ├── tds_test_code.ino       # TDS sensor standalone test
@@ -21,12 +21,11 @@ This project aligns with UN SDG 6 (Clean Water and Sanitation)—focusing on Tar
 ├── circuit/                 # Hardware simulation
 │   ├── diagram.json         # Wokwi breadboard wiring
 │   └── README.md
-├── cloud/                   # MQTT broker setup
+├── cloud/                   # MQTT broker setup and telemetry contract
 │   └── README.md
-├── aquatwin_backend/        # Aggregation, validation, SQLite, and NumPy IDW
-├── examples/                # Clearly labelled simulated multi-well input
-├── generate_spatial_grid.py # Unity-ready depth/TDS JSON generator
-├── SPATIAL_MAPPING.md       # IDW method, units, commands, and hand-off format
+├── cloud_monitor/           # Optional Python MQTT terminal monitor
+├── guardian/                # Optional durable history and decision-support service
+├── demos-and-presentations/ # Demonstration video and presentation
 ├── unity/                   # Unity digital twin project
 │   ├── Assets/              # Scripts, materials, prefabs, scenes
 │   ├── Packages/
@@ -63,13 +62,9 @@ ESP32-S3 sensors
         ↓
 HiveMQ Cloud (MQTT TLS, port 8883)
         ↓
-Python backend (validation → SQLite → NumPy IDW)
+Unity Digital Twin / cloud monitor
         ↓
-REST / WebSocket API (port 8000)
-        ↓
-Unity Digital Twin / live browser dashboard
-        ↓
-3D visualization: water level, TDS colour, pH, dashboard
+3D visualization: water level, TDS colour, and dashboard state
 ```
 
 ---
@@ -108,7 +103,7 @@ See [`firmware/README.md`](firmware/README.md).
 
 1. Install the **ESP32 board package** in Arduino IDE (Boards Manager → search `esp32`).
 2. Board settings: **ESP32S3 Dev Module**, USB CDC on boot enabled.
-3. Copy `firmware/secrets.example.h` to `firmware/secrets.h`, fill in Wi-Fi/MQTT credentials, then upload `firmware/sketch.ino`.
+3. Copy `firmware/secrets.example.h` to `firmware/secrets.h`, fill in Wi-Fi/MQTT credentials, then upload `firmware/sketch/sketch.ino`.
 4. Serial Monitor at **115200 baud** — sensor data and MQTT status.
 
 ### 2. Cloud Broker
@@ -120,27 +115,27 @@ frozen telemetry contract, and the cloud monitor commands.
 
 See [`unity/README.md`](unity/README.md).
 
-1. Start the Python backend described below.
-2. Open the `unity/` folder in Unity Hub (Unity 6000.3.2f1+).
-3. The Unity developer consumes `/api/wells/live` and `/ws/terrain-matrix`;
-   Unity must not connect directly to HiveMQ.
+1. Open the `unity/` folder in Unity Hub (Unity 6000.3.2f1+).
+2. Use the local ten-well demo to demonstrate the dashboard without hardware or
+   broker credentials, or configure the MQTT connection for live telemetry.
+3. Unity subscribes to HiveMQ through its configured secure WebSocket connection;
+   local credentials are stored outside Git and must never be committed.
 
-### Multi-Well IDW Grid
+### 4. Cloud monitor and Guardian service
 
-See [`SPATIAL_MAPPING.md`](SPATIAL_MAPPING.md) for the tested multi-well
-aggregation and NumPy IDW workflow. It produces separate flat row-major depth
-and TDS arrays for Unity, plus an optional local SVG surface preview.
+The optional `cloud_monitor` package provides a terminal view of validated
+telemetry. The optional [Guardian service](guardian/README.md) adds durable
+history and decision-support features. Both can be run independently of the
+Unity offline demo.
 
-For live operation:
+To run the cloud monitor:
 
 ```bash
-source .venv/bin/activate
-python -m aquatwin_backend
+python -m cloud_monitor --env-file .env
 ```
 
-Open `http://127.0.0.1:8000` for the event-driven live map. For a continuous
-five-well test, run `python mock_publisher.py --count 0 --wells 5 --interval 3`
-in another terminal.
+Create `.env` locally from `.env.example` and provide broker credentials only
+when using live telemetry. The offline Unity demo does not require `.env`.
 
 ---
 
@@ -166,4 +161,14 @@ Changing these keys requires updating firmware, Unity, and any backend in betwee
 
 Built by the AquaTwin team as part of CATCH_VR Summer School 2026 (GIK Institute, Erasmus+ CBHE project).
 
-Contributors and their roles are preserved in the [commit history](../../commits/main) and [commit history](../../commits/unity_code).
+### Contributions
+
+| Member | Responsibility |
+|---|---|
+| Faisal Iqbal | Team lead, project coordination, system integration, and final documentation |
+| Muhammad Rahat Shafi | Unity digital-twin development and dashboard implementation |
+| Muhammad Ahmed Raza | Embedded coding, sensor integration, and firmware work |
+
+## License
+
+This project is released under the [MIT License](LICENSE).
