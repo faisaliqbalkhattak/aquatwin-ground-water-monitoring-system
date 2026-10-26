@@ -27,7 +27,7 @@ namespace AquaTwin
         private readonly Dictionary<string, Label> labels = new();
         private VisualElement levelFill;
         private Trend trend;
-        private string selected;
+        private string selected, hovered;
         private string transport => session.Connection;
         private DemoTelemetryDataset demoDataset;
         private VisualElement demoControls;
@@ -42,6 +42,13 @@ namespace AquaTwin
         private Vector2 pointer;
         private Vector2 pointerStart;
         private DashboardSettingsDialog settingsDialog;
+        private GuardianFeed guardian;
+        private GuardianPanel guardianPanel;
+        private bool editorPreview;
+        private bool twinMaximized;
+        private Button maximizeButton;
+        private RenderTexture previewRenderedTexture;
+        private readonly Dictionary<Camera,bool> previewCameras = new();
         private Button settingsButton;
         private Label settingsToast;
         private VisualElement connectionDiagnostics;
@@ -64,12 +71,18 @@ namespace AquaTwin
             return instance;
         }
 
-        private void Awake() { InitializeDashboard(); }
+        private void Awake() { if(Application.isPlaying) InitializeDashboard(); }
         private void OnEnable()
         {
+            if(!Application.isPlaying)return;
             // Unity calls OnEnable, but not Awake, after an Editor assembly reload.
             // UI Toolkit controls and managed lookup dictionaries are not serialized.
             if (root != null && labels.ContainsKey("discovered")) return;
+            ClearRuntimeGraph();
+            InitializeDashboard();
+        }
+        private void ClearRuntimeGraph()
+        {
             var resources = new HashSet<UnityEngine.Object>();
             foreach (var old in GetComponents<UIDocument>())
             {
@@ -87,9 +100,33 @@ namespace AquaTwin
             for (int i = transform.childCount - 1; i >= 0; i--) DestroyImmediate(transform.GetChild(i).gameObject);
             foreach (var resource in resources) if (resource != null) DestroyImmediate(resource);
             labels.Clear(); pins.Clear(); filtered.Clear();
-            selected = null; knownCount = -1;
-            InitializeDashboard();
+            selected = null; knownCount = -1; twinMaximized=false;
+            root = null; scene = null; document = null;
         }
+#if UNITY_EDITOR
+        public void InitializeEditorPreview()
+        {
+            if(Application.isPlaying)return;
+            if(root==null || !labels.ContainsKey("discovered"))
+            {
+                editorPreview=true;
+                foreach(var camera in FindObjectsByType<Camera>(FindObjectsSortMode.None))previewCameras[camera]=camera.enabled;
+                ClearRuntimeGraph();InitializeDashboard();
+                session.SetConnection("PREVIEW","Editor preview · press Play to connect to HiveMQ");
+            }
+            Refresh();ResizeViewport();
+            if(scene.Texture!=previewRenderedTexture){scene.Camera.Render();previewRenderedTexture=scene.Texture;}
+            foreach(var component in GetComponents<Component>())if(component is FleetScene||component is UIDocument||component is GuardianFeed)component.hideFlags=HideFlags.DontSave;
+            foreach(var child in GetComponentsInChildren<Transform>(true))if(child!=transform)child.gameObject.hideFlags=HideFlags.DontSave;
+        }
+        public void ClearEditorPreview()
+        {
+            if(!editorPreview)return;
+            ClearRuntimeGraph();
+            foreach(var pair in previewCameras)if(pair.Key!=null)pair.Key.enabled=pair.Value;
+            previewCameras.Clear();editorPreview=false;previewRenderedTexture=null;
+        }
+#endif
         private void InitializeDashboard()
         {
             instance = this;
@@ -97,11 +134,12 @@ namespace AquaTwin
             settings.staleAfterSeconds = Mathf.Max(3, settings.staleAfterSeconds);
             settings.legacyWellDepthCm = Mathf.Max(.1f, settings.legacyWellDepthCm);
             demoCount = 10;
-            // Preserve the authored presentation scene. The fleet experience replaces it only in Play Mode.
-            GameObject.Find("DashboardCanvas")?.SetActive(false);
-            GameObject.Find("AquaTwin_Environment")?.SetActive(false);
+            // The authored scene now contains only the network dashboard. Legacy assets
+            // remain available in the repository; no legacy overlay is activated.
+            guardian = GuardianFeed.Ensure(gameObject);
             scene = gameObject.AddComponent<FleetScene>();
             scene.Initialize();
+            scene.ResolveInsight = id => guardian.Find(id,IsDemo);
             BuildInterface();
             Refresh();
         }
@@ -221,6 +259,7 @@ namespace AquaTwin
                 if (now >= nextDemo) { GenerateDemo(); nextDemo = now + demoDataset.SampleIntervalSeconds; }
             }
             lastDemoClock = now;
+            guardianPanel?.Tick();
             if (Time.unscaledTime >= nextRefresh) { Refresh(); nextRefresh = Time.unscaledTime + .5f; }
         }
 
@@ -228,7 +267,7 @@ namespace AquaTwin
         {
             panel = ScriptableObject.CreateInstance<PanelSettings>();
             panel.scaleMode = PanelScaleMode.ScaleWithScreenSize;
-            panel.referenceResolution = new Vector2Int(1600, 900);
+            panel.referenceResolution = new Vector2Int(1440, 900);
             panel.match = .5f;
             panel.themeStyleSheet = Resources.Load<ThemeStyleSheet>("FleetTheme");
             document = gameObject.AddComponent<UIDocument>();
@@ -264,7 +303,7 @@ namespace AquaTwin
             demoButton = new Button(StartDemo) { text = "Test demo", name = "test-demo", tooltip = "Replay the local ten-well JSON dataset" };
             demoButton.AddToClassList("tool"); demoButton.AddToClassList("demo-launch");
             connectionActions.Add(demoButton);
-            Action(connectionActions, "Retry HiveMQ", RetryHiveMqtt, "Reload local credentials and retry the broker connection");
+            Action(connectionActions, "Insights", () => guardianPanel.Open(), "Trends, forecasts, scenarios and historical context");
             Action(connectionActions, "Connection details", () =>
                 connectionDiagnostics.style.display = connectionDiagnostics.style.display == DisplayStyle.Flex ? DisplayStyle.None : DisplayStyle.Flex,
                 "Inspect endpoint, subscriptions, message counts and recent connection events");
@@ -273,6 +312,7 @@ namespace AquaTwin
             connectionDiagnostics.style.display = DisplayStyle.None;
             var diagnosticHead = Box(connectionDiagnostics, "section-head");
             Text(diagnosticHead, "HiveMQ connection", "section-title");
+            Action(diagnosticHead, "Retry HiveMQ", RetryHiveMqtt, "Reconnect with saved settings");
             Action(diagnosticHead, "Close", () => connectionDiagnostics.style.display = DisplayStyle.None, "Close connection details");
             var diagnosticScroll = new ScrollView(ScrollViewMode.Vertical); connectionDiagnostics.Add(diagnosticScroll);
             KeyText(diagnosticScroll, "mqttEndpoint", "", "mqtt-detail");
@@ -318,11 +358,11 @@ namespace AquaTwin
             filter.AddToClassList("filter");
             filter.RegisterValueChangedCallback(_ => RefreshList());
             sidebar.Add(filter);
-            list = new ListView(filtered, 76, MakeRow, BindRow) { selectionType = SelectionType.None, virtualizationMethod = CollectionVirtualizationMethod.FixedHeight };
+            list = new ListView(filtered, 88, MakeRow, BindRow) { selectionType = SelectionType.None, virtualizationMethod = CollectionVirtualizationMethod.FixedHeight };
             list.AddToClassList("well-list");
             sidebar.Add(list);
             KeyText(sidebar, "listEmpty", "", "list-empty");
-            Text(sidebar, "Wells appear automatically as new IDs arrive. Stale wells stay visible.", "sidebar-note");
+            sidebar.tooltip = "New IDs appear automatically; stale wells remain available.";
 
             var center = Box(workspace, "center");
             var toolbar = Box(center, "view-toolbar");
@@ -330,11 +370,18 @@ namespace AquaTwin
             Text(viewTitle, "Subsurface twin", "section-title");
             KeyText(viewTitle, "layout", "SCHEMATIC LAYOUT", "eyebrow");
             var tools = Box(toolbar, "tools");
+            var layer = new DropdownField(new List<string> { "Water level", "TDS patterns", "Pumping impact" }, 0);
+            layer.AddToClassList("layer-select"); tools.Add(layer);
+            layer.RegisterValueChangedCallback(_ => { scene.Layer = layer.index; nextRefresh = 0; });
             ToggleButton(tools, "Geology", () => { scene.ShowGeology = !scene.ShowGeology; return scene.ShowGeology; });
             ToggleButton(tools, "Water envelope", () => { scene.ShowSurface = !scene.ShowSurface; return scene.ShowSurface; });
             Action(tools, "−", () => scene.Zoom(2), "Zoom out");
             Action(tools, "+", () => scene.Zoom(-2), "Zoom in");
             Action(tools, "Reset view", () => scene.ResetView(), "Fit the entire network");
+            maximizeButton = new Button(() => SetTwinMaximized(!twinMaximized)) { text = "Maximize" };
+            maximizeButton.AddToClassList("tool"); maximizeButton.tooltip="Expand the entire twin; Escape restores the dashboard"; tools.Add(maximizeButton);
+            root.focusable=true;
+            root.RegisterCallback<KeyDownEvent>(evt => { if(evt.keyCode==KeyCode.Escape && twinMaximized){SetTwinMaximized(false);evt.StopPropagation();} });
             viewport = Box(center, "viewport");
             viewportImage = new Image { image = scene.Texture, scaleMode = ScaleMode.StretchToFill, pickingMode = PickingMode.Ignore };
             viewportImage.AddToClassList("viewport-image");
@@ -356,7 +403,13 @@ namespace AquaTwin
             });
             viewport.RegisterCallback<PointerMoveEvent>(evt =>
             {
-                if (!dragging) return;
+                if (!dragging)
+                {
+                    Vector2 local = viewport.WorldToLocal(evt.position);
+                    string id=scene.Pick(new Vector2(local.x/Mathf.Max(1,viewport.resolvedStyle.width),1-local.y/Mathf.Max(1,viewport.resolvedStyle.height)));
+                    if(id!=hovered){hovered=id;PlaceMarkers();}
+                    return;
+                }
                 Vector2 position = evt.position;
                 scene.Orbit(position - pointer); pointer = position; PlaceMarkers();
             });
@@ -371,6 +424,7 @@ namespace AquaTwin
                 dragging = false; viewport.ReleasePointer(evt.pointerId);
             });
             viewport.RegisterCallback<PointerCaptureOutEvent>(_ => dragging = false);
+            viewport.RegisterCallback<PointerLeaveEvent>(_ => { hovered=null;PlaceMarkers(); });
             viewport.RegisterCallback<WheelEvent>(evt => { scene.Zoom(evt.delta.y); PlaceMarkers(); evt.StopPropagation(); });
             var legend = Box(center, "view-legend");
             Text(legend, "●  Water column", "legend-water");
@@ -392,21 +446,24 @@ namespace AquaTwin
             Text(detailBody, "WATER COLUMN", "eyebrow");
             KeyText(detailBody, "selectedFill", "—", "fill-value");
             var track = Box(detailBody, "level-track"); levelFill = Box(track, "level-fill");
-            KeyText(detailBody, "calibration", "", "muted");
             DetailMetric("depth", "Depth to water", "cm below sensor");
-            DetailMetric("column", "Water column height", "cm above well bottom");
-            DetailMetric("tds", "Dissolved solids", "ppm · TDS");
+            DetailMetric("tds", "Dissolved solids", "ppm · estimated TDS");
             KeyText(detailBody, "tdsNote", "", "metric-note");
-            DetailMetric("ph", "pH", "Optional sensor channel");
-            var trendHeader = Box(detailBody, "trend-header");
-            Text(trendHeader, "Depth history", "section-title");
-            KeyText(trendHeader, "trendCount", "0 / 120", "eyebrow");
-            KeyText(detailBody, "trendRange", "Waiting for samples", "muted");
-            trend = new Trend(); trend.AddToClassList("trend"); detailBody.Add(trend);
-            KeyText(detailBody, "trendNote", "At least two fresh samples are needed.", "muted");
-            KeyText(detailBody, "location", "", "location");
-            KeyText(detailBody, "updated", "", "muted");
-            Text(detailBody, "Indicators use configurable operational thresholds. They do not certify water safety.", "inspector-note");
+            var intelligence=Box(detailBody,"guardian-summary");
+            Text(intelligence,"GUARDIAN","eyebrow");
+            KeyText(intelligence,"guardianSummary","Collecting evidence","guardian-summary-text");
+            Action(intelligence,"Open insights",()=>guardianPanel.Open(),"Investigate trends and test scenarios");
+            var more = new Foldout { text="History & sensor details", value=false }; more.AddToClassList("more-details");detailBody.Add(more);
+            var primary=detailBody;detailBody=more.contentContainer;
+            KeyText(detailBody,"calibration","","muted");
+            DetailMetric("column","Water column height","cm above well bottom");
+            DetailMetric("ph","pH","Optional sensor channel");
+            var trendHeader=Box(detailBody,"trend-header");Text(trendHeader,"Depth history","section-title");KeyText(trendHeader,"trendCount","0 / 120","eyebrow");
+            KeyText(detailBody,"trendRange","Waiting for samples","muted");trend=new Trend();trend.AddToClassList("trend");detailBody.Add(trend);
+            KeyText(detailBody,"trendNote","History builds from incoming readings.","muted");
+            KeyText(detailBody,"location","","location");KeyText(detailBody,"updated","","muted");
+            Text(detailBody,"Operational review thresholds do not certify water quality. Column fill is not aquifer storage.","inspector-note");
+            detailBody=primary;
             var footer = Box(root, "footer");
             KeyText(footer, "source", "", "eyebrow");
             Text(footer, "AQUATWIN  /  A LIVING VIEW BELOW THE SURFACE", "eyebrow");
@@ -414,6 +471,7 @@ namespace AquaTwin
             settingsToast.style.display = DisplayStyle.None;
             settingsToast.pickingMode = PickingMode.Ignore;
             settingsDialog = new DashboardSettingsDialog(root, SaveDashboardSettings);
+            guardianPanel = new GuardianPanel(root, guardian, scene, () => Fleet.Find(selected), () => IsDemo);
         }
 
         private void Refresh()
@@ -423,18 +481,22 @@ namespace AquaTwin
             var fresh = Fleet.Wells.Where(w => w.IsFresh(now, settings.staleAfterSeconds)).ToList();
             Set("discovered", Fleet.Wells.Count.ToString());
             Set("reporting", fresh.Count.ToString());
-            Set("attention", fresh.Count(w => w.NeedsReview(settings.reviewTdsPpm, settings.lowWaterPercent / 100)).ToString());
+            Set("attention", fresh.Count(w => NeedsReview(w)).ToString());
             Set("fill", fresh.Count == 0 ? "—" : F(fresh.Average(w => w.Fill) * 100, "0.0") + "%");
             bool connected = transport == "CONNECTED";
             bool progressing = transport == "CONNECTING" || transport == "AUTHENTICATING" || transport == "SUBSCRIBING";
             string state = connected ? "●  HIVEMQ / BROKER CONNECTED" : progressing ? "●  HIVEMQ / " + transport : "●  HIVEMQ / OFFLINE · DISCONNECTED";
+            if(editorPreview)state="EDITOR PREVIEW · PRESS PLAY";
+            else state=state.Replace("HIVEMQ / BROKER CONNECTED","HiveMQ connected").Replace("HIVEMQ / ","HiveMQ ");
             Set("connection", state);
             labels["connection"].EnableInClassList("offline", transport == "OFFLINE");
             labels["connection"].EnableInClassList("connecting", progressing);
             labels["connection"].EnableInClassList("no-telemetry", connected && session.FreshLiveCount(now, settings.staleAfterSeconds) == 0);
-            Set("connectionDetail", session.ConnectionDetail);
+            Set("connectionDetail", session.ConnectionDetail.Length > 95 ? session.ConnectionDetail.Substring(0,92)+"…" : session.ConnectionDetail);
             labels["connectionDetail"].tooltip = session.ConnectionDetail;
-            Set("liveDataStatus", session.LiveDataStatus(now, settings.staleAfterSeconds));
+            Set("liveDataStatus", editorPreview ? "Monitoring starts in Play Mode" : session.LiveDataStatus(now, settings.staleAfterSeconds)
+                .Replace("LAST KNOWN READINGS · WAITING FOR LIVE DATA","LAST KNOWN · WAITING FOR DATA")
+                .Replace("BROKER CONNECTED · NO SENSOR MESSAGES","WAITING FOR SENSOR DATA"));
             labels["liveDataStatus"].EnableInClassList("no-data", session.FreshLiveCount(now, settings.staleAfterSeconds) == 0);
             // A broker can be reachable without any sensors, or contain only stale/retained
             // readings. Demo must remain available, even while the broker is connecting.
@@ -443,14 +505,15 @@ namespace AquaTwin
             if (IsDemo) Set("demoTime", F(demoPlayhead, "0") + " / " + F(demoDataset.DurationSeconds, "0") + "s" + (demoPaused ? " · PAUSED" : " · REPLAYING"));
             Set("source", IsDemo ? "DEMO DATA  /  LOCAL AQUATWINDEMO.JSON  /  SIMULATED SENSOR READINGS" : settings.applyToDigitalTwin ? "HIVEMQ CLOUD  /  AUTO-DISCOVERY ENABLED" : "HIVEMQ CLOUD  /  TWIN UPDATES PAUSED IN SETTINGS");
             scene.Refresh(Fleet, selected, now, settings.staleAfterSeconds, settings.reviewTdsPpm);
-            Set("envelopeNote", scene.EnvelopeIsLastKnown
-                ? "LAST KNOWN WATER ENVELOPE · muted cached/stale readings · waiting for fresh telemetry. Illustrative, not a surveyed surface."
-                : "Water envelope is an illustrative blend of fresh readings, not a surveyed aquifer surface.");
+            Set("envelopeNote",scene.LayerNote);
             Set("layout", scene.Geographic ? "COORDINATE LAYOUT · NORMALIZED EXTENTS" : "SCHEMATIC LAYOUT · NOT GEOGRAPHIC");
             empty.style.display = Fleet.Wells.Count == 0 ? DisplayStyle.Flex : DisplayStyle.None;
-            Set("emptyTitle", IsDemo ? "Your demo workspace is ready" : "No sensor data available");
-            Set("emptyMessage", IsDemo ? "Set the demo well count above to explore a network." : !settings.applyToDigitalTwin ? "Live updates are paused in Settings.\nUse Test demo to explore the local dataset." : connected ? "Broker connected; no usable sensor readings.\nCheck that the ESP32/Wokwi is running, publishing to this same broker and a subscribed topic.\nOpen Connection details for delivery counts. Test demo remains available." : "Use Test demo above to explore ten wells from local JSON.\nHiveMQ connectivity is shown separately in the header.");
+            Set("emptyTitle", editorPreview ? "Your well network starts here" : IsDemo ? "Your demo workspace is ready" : "No sensor data available");
+            Set("emptyMessage", editorPreview ? "Press Play to connect. The same dashboard is used in the web build." : IsDemo ? "Set the demo well count above to explore a network." : !settings.applyToDigitalTwin ? "Live updates are paused in Settings.\nUse Test demo to explore the local dataset." : connected ? "Broker connected; no usable sensor readings.\nCheck that the ESP32/Wokwi is running, publishing to this same broker and a subscribed topic.\nOpen Connection details for delivery counts. Test demo remains available." : "Use Test demo above to explore ten wells from local JSON.\nHiveMQ connectivity is shown separately in the header.");
             RefreshList(); RefreshDetails();
+            var insight=guardian.Find(selected,IsDemo);
+            Set("guardianSummary", insight==null ? "History, warnings and forecasts" : !insight.Ready(GuardianFeed.UtcNow) ? (insight.risk=="REVIEW"?"REVIEW · ":"")+insight.quality.Replace('_',' ') :
+                insight.risk+" · "+insight.drawdown_cm_day.ToString("+0.##;-0.##;0",CultureInfo.InvariantCulture)+" cm/day");
             if (knownCount != Fleet.Wells.Count) { RebuildMarkers(); knownCount = Fleet.Wells.Count; }
             PlaceMarkers();
         }
@@ -462,7 +525,7 @@ namespace AquaTwin
             {
                 bool fresh = well.IsFresh(Time.unscaledTime, settings.staleAfterSeconds);
                 if (!string.IsNullOrWhiteSpace(search.value) && well.Id.IndexOf(search.value, StringComparison.OrdinalIgnoreCase) < 0) continue;
-                if (filter.index == 1 && !fresh || filter.index == 2 && (!fresh || !well.NeedsReview(settings.reviewTdsPpm, settings.lowWaterPercent / 100)) || filter.index == 3 && fresh) continue;
+                if (filter.index == 1 && !fresh || filter.index == 2 && (!fresh || !NeedsReview(well)) || filter.index == 3 && fresh) continue;
                 filtered.Add(well);
             }
             list.RefreshItems();
@@ -489,6 +552,12 @@ namespace AquaTwin
             row.EnableInClassList("stale", !well.IsFresh(Time.unscaledTime, settings.staleAfterSeconds));
             row.tooltip = well.Id + " · " + Status(well);
         }
+        private bool NeedsReview(WellFleet.Well well)
+        {
+            var insight=guardian.Find(well.Id,IsDemo);
+            return well.NeedsReview(settings.reviewTdsPpm,settings.lowWaterPercent/100)||
+                (insight!=null&&insight.risk=="REVIEW"&&(insight.Example||insight.valid_until>=GuardianFeed.UtcNow));
+        }
         private string Status(WellFleet.Well well)
         {
             if (well.IsCached) return "●  LAST KNOWN · WAITING FOR LIVE";
@@ -496,7 +565,7 @@ namespace AquaTwin
             if (!well.AgeKnown) return "●  RETAINED / AGE UNKNOWN";
             if (well.HasOldSourceTime(Time.unscaledTime, settings.staleAfterSeconds)) return "●  RECEIVING · SOURCE TIME OLD";
             if (!well.IsFresh(Time.unscaledTime, settings.staleAfterSeconds)) return "●  STALE · " + Age(well);
-            if (well.NeedsReview(settings.reviewTdsPpm, settings.lowWaterPercent / 100)) return "●  REVIEW";
+            if (NeedsReview(well)) return "●  REVIEW";
             return well.Demo ? "●  DEMO / REPORTING" : "●  REPORTING";
         }
         private string Age(WellFleet.Well well)
@@ -509,7 +578,9 @@ namespace AquaTwin
             var well = Fleet.Find(selected);
             detailBody.style.display = well == null ? DisplayStyle.None : DisplayStyle.Flex;
             Set("selectedId", well?.Id ?? "Select a well");
-            Set("selectedStatus", well == null ? "No telemetry received" : Status(well));
+            string origin=well==null?"":guardian.Find(well.Id,IsDemo)?.source;
+            if(string.IsNullOrEmpty(origin)&&well!=null)origin=well.Demo||well.Id.ToUpperInvariant().Contains("SIM")||well.Id.ToUpperInvariant().Contains("WOKWI")?"simulated":"origin unverified";
+            Set("selectedStatus", well == null ? "No telemetry received" : origin.ToUpperInvariant()+" · "+Status(well));
             if (well == null) return;
             Set("selectedFill", F(well.Fill * 100, "0.0") + "%");
             levelFill.style.width = Length.Percent(well.Fill * 100);
@@ -549,11 +620,19 @@ namespace AquaTwin
                 Vector3 point = scene.Camera.WorldToViewportPoint(scene.HeadPosition(pair.Key));
                 pair.Value.style.left = point.x * viewport.resolvedStyle.width;
                 pair.Value.style.top = (1 - point.y) * viewport.resolvedStyle.height;
-                pair.Value.style.display = point.z > 0 && point.x > 0 && point.x < 1 && point.y > 0 && point.y < 1 ? DisplayStyle.Flex : DisplayStyle.None;
+                pair.Value.style.display = point.z > 0 && point.x > 0 && point.x < 1 && point.y > 0 && point.y < 1 && (Fleet.Wells.Count<=6||pair.Key==selected||pair.Key==hovered) ? DisplayStyle.Flex : DisplayStyle.None;
                 pair.Value.EnableInClassList("selected", pair.Key == selected);
                 var well = Fleet.Find(pair.Key);
                 pair.Value.EnableInClassList("stale", well != null && !well.IsFresh(Time.unscaledTime, settings.staleAfterSeconds));
             }
+        }
+        private void SetTwinMaximized(bool value)
+        {
+            twinMaximized=value;
+            root.EnableInClassList("twin-maximized",value);
+            maximizeButton.text=value?"Restore":"Maximize";
+            root.Focus();
+            root.schedule.Execute(()=>{if(scene!=null && viewport!=null){ResizeViewport();PlaceMarkers();}});
         }
         private void ResizeViewport()
         {
@@ -575,7 +654,7 @@ namespace AquaTwin
         }
         private void Metric(VisualElement parent, string key, string title, string value, string note, bool last = false)
         {
-            var metric = Box(parent, "summary-metric");
+            var metric = Box(parent, "summary-metric"); metric.tooltip=note;
             if (last) metric.AddToClassList("summary-last");
             Text(metric, title, "eyebrow");
             KeyText(metric, key, value, "summary-value"); Text(metric, note, "metric-caption");
@@ -606,7 +685,7 @@ namespace AquaTwin
             var button = new Button { text = title }; button.AddToClassList("tool"); button.AddToClassList("active");
             button.clicked += () => button.EnableInClassList("active", toggle()); parent.Add(button);
         }
-        private void OnDestroy() { if (panel != null) Destroy(panel); if (instance == this) instance = null; }
+        private void OnDestroy() { if (panel != null) { if(Application.isPlaying)Destroy(panel);else DestroyImmediate(panel); } if (instance == this) instance = null; }
 
         private sealed class Trend : VisualElement
         {

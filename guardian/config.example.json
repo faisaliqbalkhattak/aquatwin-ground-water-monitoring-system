@@ -1,0 +1,30 @@
+{
+  "broker_host": "YOUR_CLUSTER.s1.eu.hivemq.cloud",
+  "broker_port": 8883,
+  "transport": "tcp",
+  "websocket_path": "/mqtt",
+  "username_env": "AQUATWIN_MQTT_USERNAME",
+  "password_env": "AQUATWIN_MQTT_PASSWORD",
+  "database": "data/guardian.sqlite3",
+  "telemetry_topic": "aquatwin/well/+/telemetry",
+  "publish_interval_seconds": 15,
+  "stale_after_seconds": 60,
+  "window_days": 30,
+  "min_samples": 12,
+  "min_span_hours": 6,
+  "max_horizon_days": 30,
+  "tds_review_ppm": 600,
+  "drawdown_review_cm_day": 2,
+  "tds_rise_review_ppm_day": 10,
+  "wells": {
+    "REPLACE_WITH_REAL_WELL_ID": {
+      "source": "measured",
+      "critical_depth_cm": 360,
+      "valid_depth_max_cm": 400,
+      "aquifer_id": null,
+      "reference_elevation_m": null,
+      "vertical_datum": null,
+      "tds_calibrated": false
+    }
+  }
+}

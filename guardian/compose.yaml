@@ -1,0 +1,11 @@
+services:
+  guardian:
+    build: .
+    restart: unless-stopped
+    env_file: .env
+    volumes:
+      - ./config.local.json:/config/settings.json:ro
+      - guardian_history:/data
+    # Outbound MQTT/TLS only; no HTTP port or incoming firewall exception required.
+volumes:
+  guardian_history:

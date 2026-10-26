@@ -1,0 +1,14 @@
+<linker>
+  <assembly fullname="Assembly-CSharp">
+    <type fullname="AquaTwin.GuardianInsight" preserve="all" />
+    <type fullname="AquaTwin.GuardianPoint" preserve="all" />
+    <type fullname="AquaTwin.GuardianBacktest" preserve="all" />
+    <type fullname="AquaTwin.GuardianScenario" preserve="all" />
+    <type fullname="AquaTwin.GuardianScenarioInputs" preserve="all" />
+    <type fullname="AquaTwin.GuardianFeed/ExampleList" preserve="all" />
+    <type fullname="AquaTwin.GuardianFeed/ScenarioList" preserve="all" />
+    <type fullname="AquaTwin.GuardianFeed/ServiceStatus" preserve="all" />
+    <type fullname="AquaTwin.GuardianFeed/Reply" preserve="all" />
+    <type fullname="AquaTwin.GuardianFeed/Result" preserve="all" />
+  </assembly>
+</linker>

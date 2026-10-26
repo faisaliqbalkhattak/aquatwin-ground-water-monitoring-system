@@ -16,14 +16,17 @@ namespace AquaTwin
         public Action<string, string, bool> Payload;
         private readonly string username, password;
         private readonly string[] topics;
+        private readonly HashSet<string> optionalTopics;
+        public string SubscriptionWarnings { get; private set; } = "";
         private readonly List<byte> pending = new();
         private double deadline, lastPing, pingSent;
         private bool awaitingPing;
         private const int Limit = 1024 * 1024;
 
-        public MqttProtocolSession(string username, string password, string[] topics, double now)
+        public MqttProtocolSession(string username, string password, string[] topics, double now, string[] optionalTopics = null)
         {
             this.username = username; this.password = password; this.topics = topics;
+            this.optionalTopics = new HashSet<string>(optionalTopics ?? Array.Empty<string>());
             deadline = now + 12;
         }
         public void Open(double now)
@@ -103,7 +106,11 @@ namespace AquaTwin
                 if (State != "SUBSCRIBING" || body.Length != topics.Length + 2 || body[0] != 0 || body[1] != 1)
                     throw new InvalidDataException("Invalid SUBACK.");
                 for (int i = 0; i < topics.Length; i++)
-                    if (body[i + 2] != 0) { Fail("Subscription rejected for " + topics[i] + ". Check this credential's subscribe permissions (SUBACK " + body[i + 2] + ")."); return; }
+                    if (body[i + 2] != 0)
+                    {
+                        if (optionalTopics.Contains(topics[i])) { SubscriptionWarnings += "Guardian subscription unavailable: " + topics[i] + ". "; continue; }
+                        Fail("Subscription rejected for " + topics[i] + ". Check this credential's subscribe permissions (SUBACK " + body[i + 2] + ")."); return;
+                    }
                 lastPing = now;
                 Set("CONNECTED", "Authenticated and subscribed · waiting for sensor messages");
             }
@@ -132,6 +139,14 @@ namespace AquaTwin
         {
             byte[] bytes = Encoding.UTF8.GetBytes(text); stream.WriteByte((byte)(bytes.Length >> 8));
             stream.WriteByte((byte)bytes.Length); stream.Write(bytes, 0, bytes.Length);
+        }
+        public bool Publish(string topic, string json)
+        {
+            if (State != "CONNECTED" || string.IsNullOrWhiteSpace(topic) || topic.IndexOfAny(new[] {'+', '#', '\0'}) >= 0 ||
+                Encoding.UTF8.GetByteCount(topic) > 65535 || Encoding.UTF8.GetByteCount(json ?? "") > 16384) return false;
+            using var body = new MemoryStream(); Text(body, topic);
+            var bytes = Encoding.UTF8.GetBytes(json ?? ""); body.Write(bytes, 0, bytes.Length);
+            Send?.Invoke(Packet(0x30, body.ToArray())); return true;
         }
         public static byte[] Packet(byte header, byte[] body)
         {

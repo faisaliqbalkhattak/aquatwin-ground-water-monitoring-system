@@ -56,6 +56,10 @@ namespace AquaTwin.Editor
             string badEntry = "{\"topic\":\"" + topic + "\",\"json\":\"not JSON\"},";
             string mixed = stored.Replace("\"readings\":[", "\"readings\":[" + badEntry);
             Check(new FleetSnapshotCache("broker|account").Restore(mixed, new WellFleet(), new[] { "#" }, 0, 1001, 20) == 1, "one corrupt reading does not discard valid snapshots");
+            var clockRestart = new WellFleet(); restart.Restore(stored, clockRestart, new[] { "#" }, 0, 1001, 20);
+            Check(clockRestart.ApplyJson(json.Replace("1000", "999"), topic, false, 1, 1001, 20, false, out _, true), "first non-retained publication can replace a newer cached source clock");
+            Check(!clockRestart.Find("WELL_WOKWI_01").IsCached, "source clock restart promotes cached identity without duplicating it");
+            Check(!clockRestart.ApplyJson(json.Replace("1000", "998"), topic, false, 2, 1002, 20, false, out _, true), "active session still rejects out-of-order observations");
             var older = new WellFleet(); restart.Restore(stored, older, new[] { "#" }, 0, 10000, 20);
             Check(older.Find("WELL_WOKWI_01").Age(0) == 9000 && !older.Find("WELL_WOKWI_01").HasOldSourceTime(0, 15), "old cached data retains source age without pretending to be an arriving stream");
 #if UNITY_EDITOR

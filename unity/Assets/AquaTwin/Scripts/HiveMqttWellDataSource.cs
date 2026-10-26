@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using UnityEngine;
 
 namespace AquaTwin
@@ -65,14 +66,16 @@ namespace AquaTwin
             settings = AquaTwinMqttLocalSettings.Load();
             dashboard = FleetDashboard.EnsureInstance();
             PrepareSnapshots();
+            GuardianFeed.Ensure(gameObject).PrepareLocalHistory();
             recovery.Starting(Time.realtimeSinceStartup);
             retryAt = float.PositiveInfinity;
             telemetryIssue = "";
             attempts++;
             receivedBeforeAttempt = received; rejectedBeforeAttempt = rejected;
             dashboard.SetTelemetryDelivery(0, 0);
+            var optional = GuardianFeed.OptionalTopics;
             protocol = new MqttProtocolSession(settings.username, settings.password,
-                settings.SubscriptionTopics, Time.realtimeSinceStartup);
+                settings.SubscriptionTopics.Concat(optional).Distinct().ToArray(), Time.realtimeSinceStartup, optional);
             protocol.Status = OnStatus;
             protocol.Payload = ProcessTelemetryJson;
             protocol.Send = bytes => socket?.Send(bytes);
@@ -134,9 +137,10 @@ namespace AquaTwin
                 string.Join(" · ", settings.SubscriptionTopics),
                 "Attempt " + attempts + "   |   This connection " + (received - receivedBeforeAttempt) + " messages   |   Session received " + received + "   Accepted " + accepted + "   Rejected " + rejected +
                 "   |   Keep-alive replies " + protocol.PingResponses + "   |   Last topic: " + lastTopic + (lastMessageAt < 0 ? "" : "   |   Last message " + Mathf.FloorToInt(now - lastMessageAt) + "s ago"),
-                lastError, (protocol.State == "OFFLINE" ? countdown : activity) + (string.IsNullOrEmpty(snapshotNote) ? "" : "\n" + snapshotNote),
+                string.IsNullOrEmpty(protocol.SubscriptionWarnings) ? lastError : protocol.SubscriptionWarnings + lastError, (protocol.State == "OFFLINE" ? countdown : activity) + (string.IsNullOrEmpty(snapshotNote) ? "" : "\n" + snapshotNote),
                 string.Join("\n", history.ToArray()));
         }
+        public bool PublishGuardianRequest(string json) => protocol != null && protocol.Publish(GuardianFeed.RequestTopic, json);
         private void OnStatus(string state, string detail)
         {
             detail = Safe(detail);
@@ -154,6 +158,7 @@ namespace AquaTwin
         }
         private void ProcessTelemetryJson(string json, string topic, bool retained)
         {
+            if (GuardianFeed.IsGuardianTopic(topic)) { GuardianFeed.Ensure(gameObject).Receive(topic, json); return; }
             received++; lastMessageAt = Time.realtimeSinceStartup; lastTopic = topic;
             recovery.Received(lastMessageAt);
             if (!settings.applyToDigitalTwin) return;

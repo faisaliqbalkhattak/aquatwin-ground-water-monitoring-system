@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Text;
 using System.Text.RegularExpressions;
@@ -106,7 +106,7 @@ namespace AquaTwin
                     throw new FormatException("Invalid or future source timestamp (use Unix seconds).");
                 Well well = Find(id);
                 if (well != null && !double.IsNaN(well.SourceTimestamp) &&
-                    !double.IsNaN(timestamp) && timestamp < well.SourceTimestamp)
+                    !double.IsNaN(timestamp) && timestamp < well.SourceTimestamp && !(well.IsCached && !retained))
                     throw new FormatException("Out-of-order source timestamp.");
                 if (well == null)
                 {

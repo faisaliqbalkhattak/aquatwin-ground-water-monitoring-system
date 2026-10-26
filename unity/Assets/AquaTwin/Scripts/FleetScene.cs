@@ -27,6 +27,16 @@ namespace AquaTwin
         private float yaw = -17, pitch = 18, zoom = 1;
         private int count = -1;
         private string layoutKey;
+        public int Layer;
+        public Func<string,GuardianInsight> ResolveInsight;
+        public string LayerNote { get; private set; } = "Relative well-column fill · schematic surface";
+        private Transform projectionRoot, baselineGhost, scenarioGhost, intervalGhost;
+        private Mesh impactMesh;
+        private Renderer impactRenderer;
+        private string projectionId;
+        private GuardianPoint projection;
+        private GuardianScenario intervention;
+        private double projectionExpiry=double.MaxValue;
         public bool ShowGeology = true, ShowSurface = true;
         public Camera Camera => view;
         public RenderTexture Texture => texture;
@@ -89,6 +99,15 @@ namespace AquaTwin
             surfaceRoot.gameObject.AddComponent<MeshFilter>().sharedMesh = surface;
             surfaceRenderer = surfaceRoot.gameObject.AddComponent<MeshRenderer>();
             surfaceRenderer.sharedMaterial = Mat("Aquifer envelope", new Color(.12f, .70f, .66f, .28f), false, true);
+            projectionRoot = new GameObject("Guardian projections").transform; projectionRoot.SetParent(transform,false);
+            baselineGhost = Primitive("Forecast baseline",PrimitiveType.Cylinder,projectionRoot,Vector3.zero,Vector3.one,Mat("Forecast amber",new Color(1,.68f,.25f,.30f),false,true)).transform;
+            scenarioGhost = Primitive("Intervention",PrimitiveType.Cylinder,projectionRoot,Vector3.zero,Vector3.one,Mat("Scenario violet",new Color(.65f,.52f,1,.36f),false,true)).transform;
+            intervalGhost = Primitive("Prediction band",PrimitiveType.Cylinder,projectionRoot,Vector3.zero,Vector3.one,Mat("Forecast interval",new Color(1,.76f,.39f,.12f),false,true)).transform;
+            var impact=new GameObject("Hypothetical pumping footprint");impact.transform.SetParent(projectionRoot,false);
+            impactMesh=new Mesh{name="Guardian impact mesh"};impact.AddComponent<MeshFilter>().sharedMesh=impactMesh;
+            impactRenderer=impact.AddComponent<MeshRenderer>();impactRenderer.sharedMaterial=Mat("Pumping impact",new Color(.69f,.50f,.94f,.20f),false,true);
+            projectionRoot.gameObject.SetActive(false);
+            surfaceRenderer.sharedMaterial.SetFloat("_VertexTint",1);
             Resize(1000, 650);
         }
 
@@ -97,7 +116,7 @@ namespace AquaTwin
             width = Mathf.Clamp(width, 64, 2048);
             height = Mathf.Clamp(height, 64, 2048);
             if (texture != null && texture.width == width && texture.height == height) return;
-            if (texture != null) { texture.Release(); Destroy(texture); }
+            if (texture != null) { if (view != null) view.targetTexture = null; texture.Release(); Release(texture); texture = null; }
             texture = new RenderTexture(width, height, 24) { name = "AquaTwin viewport", antiAliasing = 4 };
             texture.Create();
             view.targetTexture = texture;
@@ -138,19 +157,24 @@ namespace AquaTwin
                 float height = Mathf.Max(.025f, well.Fill * 6);
                 node.Water.localPosition = new Vector3(0, -6 + height / 2, 0);
                 node.Water.localScale = new Vector3(.32f, height / 2, .32f);
-                Color color = QualityColor(well.Tds, reviewTds);
+                Color color = Layer==0 ? new Color(.23f,.84f,.72f) : Layer==1 ? QualityColor(well.Tds, reviewTds) : new Color(.53f,.59f,.67f);
                 if (!well.IsFresh(now, timeout)) color = Color.Lerp(color, Color.gray, .8f);
                 Tint(node.WaterRenderer, color);
-                Tint(node.HeadRenderer, color);
+                Color beacon=QualityColor(well.Tds,reviewTds);
+                var insight=ResolveInsight?.Invoke(well.Id);
+                if(insight!=null&&insight.risk=="REVIEW"&&(insight.Example||insight.valid_until>=GuardianFeed.UtcNow))beacon=new Color(.98f,.68f,.25f);
+                if(!well.IsFresh(now,timeout))beacon=Color.Lerp(beacon,Color.gray,.8f);
+                Tint(node.HeadRenderer, beacon);
                 node.Halo.gameObject.SetActive(well.Id == selected);
             }
             UpdateSurface(fleet, now, timeout);
+            UpdateProjection(fleet);
         }
 
         private void Layout(WellFleet fleet)
         {
             int count = fleet.Wells.Count;
-            foreach (Node node in nodes.Values) Destroy(node.Root.gameObject);
+            foreach (Node node in nodes.Values) Release(node.Root.gameObject);
             nodes.Clear();
             int columns = Mathf.Max(1, Mathf.CeilToInt(Mathf.Sqrt(Mathf.Max(1, count) * 1.6f)));
             int rows = Mathf.Max(1, Mathf.CeilToInt((float)count / columns));
@@ -198,7 +222,7 @@ namespace AquaTwin
 
         private void BuildGeology()
         {
-            if (geology != null) Destroy(geology.gameObject);
+            if (geology != null) Release(geology.gameObject);
             geology = new GameObject("Geological cutaway").transform;
             geology.SetParent(transform, false);
             // One shared material plus property blocks avoids material growth on discovery.
@@ -232,28 +256,50 @@ namespace AquaTwin
             int freshCount = 0;
             foreach (var w in fleet.Wells) if (w.IsFresh(now, timeout)) freshCount++;
             EnvelopeIsLastKnown = freshCount == 0 && fleet.Wells.Count > 0;
-            surfaceRenderer.enabled = fleet.Wells.Count > 0;
-            if (fleet.Wells.Count == 0) return;
+            surfaceRenderer.enabled = fleet.Wells.Count > 0 && Layer != 2;
+            if (fleet.Wells.Count == 0) { LayerNote="No observations yet"; return; }
+            if(Layer==2) { LayerNote="HYPOTHETICAL PUMPING IMPACT · open Insights / What-if to enter assumptions. Footprint is schematic."; return; }
+            bool commonDatum = Geographic && !EnvelopeIsLastKnown && fleet.Wells.Count>1;
+            string datum=null,aquifer=null;double lowHead=double.PositiveInfinity,highHead=double.NegativeInfinity;
+            foreach(var w in fleet.Wells)
+            {
+                var insight=ResolveInsight?.Invoke(w.Id);
+                if(!w.IsFresh(now,timeout)||insight==null||!insight.HasDatum||insight.valid_until<GuardianFeed.UtcNow){commonDatum=false;continue;}
+                if(datum!=null&&(datum!=insight.vertical_datum||aquifer!=insight.aquifer_id))commonDatum=false;
+                datum=insight.vertical_datum;aquifer=insight.aquifer_id;
+                double head=insight.reference_elevation_m-w.DepthCm/100.0;lowHead=Math.Min(lowHead,head);highHead=Math.Max(highHead,head);
+            }
+            LayerNote=Layer==1 ? "TDS PATTERN · estimated values; fading indicates sparse coverage. Not a confirmed contamination plume." :
+                commonDatum ? $"HEAD PATTERN · {lowHead:0.##}–{highHead:0.##} m · {datum}. Vertical scale normalized; interpolation is indicative." :
+                "RELATIVE COLUMN FILL · schematic; a common datum/aquifer is required for a physical water-level field.";
+            if(EnvelopeIsLastKnown)LayerNote="LAST KNOWN · "+LayerNote;
             // Preserve a clearly muted last-known envelope during source pauses.
             // When current readings exist, only those contribute to the live surface.
-            Tint(surfaceRenderer, EnvelopeIsLastKnown
-                ? new Color(.40f, .49f, .51f, .18f) : new Color(.12f, .70f, .66f, .28f));
+            Tint(surfaceRenderer, new Color(1,1,1,EnvelopeIsLastKnown ? .18f : .30f));
             for (int z = 0; z <= resolution; z++)
             for (int x = 0; x <= resolution; x++)
             {
                 Vector3 position = new((x / (float)resolution - .5f) * span.x, 0, (z / (float)resolution - .5f) * span.y);
-                float sum = 0, height = 0;
+                float sum = 0, height = 0, tds = 0, nearest=float.PositiveInfinity;
                 foreach (var w in fleet.Wells)
                 {
                     if (!EnvelopeIsLastKnown && !w.IsFresh(now, timeout)) continue;
                     float weight = 1 / Mathf.Max(.01f, (position - nodes[w.Id].Position).sqrMagnitude);
-                    height += (-6 + w.Fill * 6) * weight;
-                    sum += weight;
+                    float y=-6+w.Fill*6;
+                    if(commonDatum&&Layer==0)
+                    {
+                        double head=ResolveInsight(w.Id).reference_elevation_m-w.DepthCm/100.0;
+                        y=-5.5f+(float)((head-lowHead)/Math.Max(.001,highHead-lowHead))*5;
+                    }
+                    height += y * weight;tds+=w.Tds*weight;
+                    nearest=Mathf.Min(nearest,(position-nodes[w.Id].Position).magnitude);sum += weight;
                 }
                 position.y = height / Mathf.Max(.001f, sum);
                 int index = z * (resolution + 1) + x;
                 vertices[index] = position;
-                colors[index] = Color.white;
+                Color c=Layer==1?QualityColor(tds/Mathf.Max(.001f,sum)):new Color(.22f,.78f,.73f);
+                if(EnvelopeIsLastKnown)c=Color.Lerp(c,Color.gray,.7f);
+                c.a=Mathf.Clamp(1-nearest/Mathf.Max(1,span.magnitude*.5f),.18f,1);colors[index]=c;
                 if (x == resolution || z == resolution) continue;
                 int t = (z * resolution + x) * 6;
                 triangles[t] = index; triangles[t + 1] = index + resolution + 1; triangles[t + 2] = index + 1;
@@ -263,6 +309,36 @@ namespace AquaTwin
             surface.RecalculateNormals(); surface.RecalculateBounds();
         }
 
+        public void SetProjection(string id,GuardianPoint point,GuardianScenario scenario,double expires=double.MaxValue)
+        { projectionId=id;projection=point;intervention=scenario;projectionExpiry=expires; }
+        public void ClearProjection(){projectionId=null;if(projectionRoot!=null)projectionRoot.gameObject.SetActive(false);}
+        private void UpdateProjection(WellFleet fleet)
+        {
+            var well=fleet.Find(projectionId);
+            bool visible=well!=null&&projection!=null&&nodes.ContainsKey(projectionId)&&GuardianFeed.UtcNow<=projectionExpiry;
+            projectionRoot.gameObject.SetActive(visible);if(!visible)return;
+            LayerNote += intervention==null ? " · ORANGE: FORECAST (column clipped to reported well depth)." : " · ORANGE: BASELINE / VIOLET: HYPOTHETICAL. Columns clip to reported geometry.";
+            projectionRoot.localPosition=nodes[projectionId].Position;
+            float total=Mathf.Max(.1f,well.DepthCm+well.ColumnCm);
+            float Y(double depth)=>-6+Mathf.Clamp01(1-(float)depth/total)*6;
+            void Column(Transform item,double depth,float x)
+            {float h=Mathf.Max(.025f,Y(depth)+6);item.localPosition=new Vector3(x,-6+h/2,0);item.localScale=new Vector3(.49f,h/2,.49f);}
+            Column(baselineGhost,projection.depth_cm,-.52f);
+            float y0=Y(projection.upper_cm),y1=Y(projection.lower_cm);
+            intervalGhost.gameObject.SetActive(intervention==null);
+            intervalGhost.localPosition=new Vector3(-.52f,(y0+y1)/2,0);intervalGhost.localScale=new Vector3(.72f,Mathf.Max(.012f,Mathf.Abs(y1-y0)/2),.72f);
+            scenarioGhost.gameObject.SetActive(intervention!=null&&intervention.level_model_available);
+            impactRenderer.enabled=Layer==2&&intervention!=null&&intervention.level_model_available;
+            if(intervention==null||!intervention.level_model_available)return;
+            Column(scenarioGhost,intervention.scenario_depth_cm,.52f);
+            if(!impactRenderer.enabled)return;
+            const int sectors=32,rings=8;var vertices=new Vector3[(rings+1)*(sectors+1)];var triangles=new int[rings*sectors*6];
+            float delta=Y(intervention.scenario_depth_cm)-Y(intervention.baseline_depth_cm),origin=Y(intervention.baseline_depth_cm);
+            for(int r=0;r<=rings;r++)for(int i=0;i<=sectors;i++)
+            {float f=r/(float)rings,a=i/(float)sectors*Mathf.PI*2;vertices[r*(sectors+1)+i]=new Vector3(Mathf.Cos(a)*f*3,origin+delta*(1-f)*(1-f),Mathf.Sin(a)*f*3);
+                if(r==rings||i==sectors)continue;int k=(r*sectors+i)*6,n=r*(sectors+1)+i;triangles[k]=n;triangles[k+1]=n+sectors+1;triangles[k+2]=n+1;triangles[k+3]=n+1;triangles[k+4]=n+sectors+1;triangles[k+5]=n+sectors+2;}
+            impactMesh.Clear();impactMesh.vertices=vertices;impactMesh.triangles=triangles;impactMesh.RecalculateNormals();impactMesh.RecalculateBounds();
+        }
         public static Color QualityColor(float tds, float reviewThreshold = 600)
         {
             float threshold = Mathf.Max(.01f, reviewThreshold);
@@ -283,16 +359,19 @@ namespace AquaTwin
         {
             var item = GameObject.CreatePrimitive(type); item.name = label; item.transform.SetParent(parent, false);
             item.transform.localPosition = position; item.transform.localScale = scale;
-            Destroy(item.GetComponent<Collider>());
+            Release(item.GetComponent<Collider>());
             var renderer = item.GetComponent<Renderer>(); renderer.sharedMaterial = material;
             renderer.shadowCastingMode = ShadowCastingMode.Off; renderer.receiveShadows = false;
             return item;
         }
+        private static void Release(UnityEngine.Object value)
+        { if(value==null)return;if(Application.isPlaying)UnityEngine.Object.Destroy(value);else UnityEngine.Object.DestroyImmediate(value); }
         private void OnDestroy()
         {
-            if (texture != null) { texture.Release(); Destroy(texture); }
-            if (surface != null) Destroy(surface);
-            foreach (var material in materials) Destroy(material);
+            if (texture != null) { if (view != null) view.targetTexture = null; texture.Release(); Release(texture); texture = null; }
+            if (surface != null) Release(surface);
+            if (impactMesh != null) Release(impactMesh);
+            foreach (var material in materials) Release(material);
         }
     }
 }

@@ -156,3 +156,10 @@ The production model and parser passed **126 checks**, including 100 additional 
 An isolated full Unity run was attempted, but this execution environment could not connect to Unity's local package-manager/licensing IPC services. **Play Mode layout, shader appearance, mouse interaction, player builds and a live HiveMQ session remain to be verified in the user's Unity editor.** No screenshots or live-connectivity results are claimed.
 
 For the first editor review, press Play, wait for the connection result and click Test demo. Try 0, 1 and 10 wells; select bores, filter the list and resize the Game view. Then configure HiveMQ credentials, retry, and return to live. Publish two different well IDs and stop one publisher long enough to confirm only that well becomes stale. Confirm both wildcard subscriptions are allowed by the broker account.
+# Guardian dashboard update
+
+`Assets/Scenes/SampleScene.unity` now uses the network dashboard directly. The retired single-well presentation is no longer the default Edit Mode view. A disposable preview shows the same interface before Play; monitoring starts only in Play Mode. Use **AquaTwin -> Set Up Network Dashboard Scene** if a copied/older scene needs migration. The legacy builder remains under **AquaTwin -> Legacy** and no longer runs automatically.
+
+Primary measurements are larger; additional timestamps, calibration, optional pH and depth history remain under **History & sensor details**. **Insights** opens Guardian evidence, Time Machine, what-if scenarios and historical context. Raw MQTT, dynamic well discovery, demo controls and connection diagnostics remain available.
+
+See [the Guardian setup/deployment guide](../guardian/README.md) for the independent worker, HiveMQ permissions and the Hostinger update procedure. Its Python/database/configuration files do not belong in a public Unity build. Upload only the public `guardian-context` folder beside the deployed Unity `index.html`.

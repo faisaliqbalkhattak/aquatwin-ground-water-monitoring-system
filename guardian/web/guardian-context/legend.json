@@ -1,0 +1,484 @@
+{
+  "layers": [
+    {
+      "layerId": 0,
+      "layerName": "Groundwater Monitoring Wells",
+      "layerType": "Feature Layer",
+      "minScale": 0,
+      "maxScale": 0,
+      "legend": [
+        {
+          "label": "",
+          "url": "daa2ed1f4d6a9f7c2c3912ae3b1740fb",
+          "imageData": "iVBORw0KGgoAAAANSUhEUgAAABgAAAAbCAYAAABm409WAAAACXBIWXMAAA7EAAAOxAGVKw4bAAACv0lEQVRIiZVVvW7TYBQ9ViwqRWIKW73ggY6McWGIUViZMvAEzE2fwMmEmMLOE2TgDShJB8AdGdshVaWw0RWpiOpD59rXvnbsJL2Lre/nnHvP/fl87GHOuUn+OzDL5wCWnuctt931d4AOAMTpGkh/VfejQ8RRgMQ5R4JpG5G/BTz5eAHM0m3+AacR4nEfcRtRhcA5FwNY0OO3n7O1v1dn8u30nqLTC4uz97cr+c7SUJyYjyQiWjtB3WuC311+wcHRawE/jUQaIb+/vS72Hj0byhqjYfSe5002CLiRrhEr+J/vn8TLTi8UAIKP+wCjm49IMpRzJKHxDO9Gh5IXKIlvpElmF2X4KsHBUQlOL5WAazMMC3A1nrk5KUl8Kw0vZ3qH6L54J/8vn4cCbvdzkCwHGBZSPn7zXtZ4lnesRPGP/DI9v7s8E89F91yWejUpiF0nEaMh1riPBMDEpzxS5zkBwTOJQvE+CsqKskZgElCqD1fVPcUiNiMg04axLNtM9E9LIJsDSxIFEIKNLs2kugaQ1b0CKXhdmiYSYkYBBhud7D8JRaJ/v1dI10PRWj2maa4oncqnJc3C0GZkv3BekeCcc8V6woooOxVSMbzAMmY0x4H2QrWkG2wpEeQtXpiWqJp0KRPaB6JRVkG2bGn03I4SxfTZDM65hAu2D+iVhv61F+Lbz6xsyxytKj3TBM7BpzmYHgdI6h4B2aDLyEpAK4nOImuMVIdekWTtPFsd9EyjqHveVs6afDpdEOQySffVy6/bQGL3rDQ0Jt++C0UESjIfIal3breBZAv4snFcG5LBzQlinZxNJHVwbb4c/NXWJ5MHnHMLvlAy5Ew5EljfCAWmtYE3EhiSCR/1eV5yZTR5p1Z7Z2pl2Ulgc4J8GNabcR/wrQRNJHgg+E4CQ8KSWzwUfC+CnGTpnGMCi6G4DzgP/gfJnZLKaxrAmwAAAABJRU5ErkJggg==",
+          "contentType": "image/png",
+          "groupId": "0",
+          "height": 27,
+          "width": 24
+        }
+      ],
+      "legendGroups": [
+        {
+          "id": "0",
+          "heading": ""
+        }
+      ]
+    },
+    {
+      "layerId": 1,
+      "layerName": "Static Groundwater Level Contour 2017 ",
+      "layerType": "Feature Layer",
+      "minScale": 0,
+      "maxScale": 0,
+      "legend": [
+        {
+          "label": "Major Contour Line ( 100 m Interval)",
+          "url": "fae22a9283912d1bc45184489dce61bc",
+          "imageData": "iVBORw0KGgoAAAANSUhEUgAAABQAAAAUCAYAAACNiR0NAAAACXBIWXMAAA7EAAAOxAGVKw4bAAAASklEQVQ4jWNhoDJgGTWQYsAyQg1MaNjsQA3DFjT4HmABGfafkWE/NQxMaNjsSH0vL2jwPQAymWpeZoAyGEZWsqEmYKGqaQwj0kAACFMSEm9QOaoAAAAASUVORK5CYII=",
+          "contentType": "image/png",
+          "groupId": "0",
+          "height": 20,
+          "width": 20,
+          "values": [
+            "1"
+          ]
+        },
+        {
+          "label": "Minor Contour Line ( 10 m Interval)",
+          "url": "4b50e413b439853add3bd3516de2f0c7",
+          "imageData": "iVBORw0KGgoAAAANSUhEUgAAABQAAAAUCAYAAACNiR0NAAAACXBIWXMAAA7EAAAOxAGVKw4bAAAAQ0lEQVQ4jWNhoDJgGTWQYsBCuRGoYKQamNC4ueE/I4M9JQYx/mc4uKDet4E2LlxQ79tAVQOpCVioahrDqIHUAIM/UgCoBgk9HVaAzgAAAABJRU5ErkJggg==",
+          "contentType": "image/png",
+          "groupId": "0",
+          "height": 20,
+          "width": 20,
+          "values": [
+            "2"
+          ]
+        },
+        {
+          "label": "Contour Line of Special Interest (5 m Interval)",
+          "url": "7b44fb11d23ac36008799c2f84129e32",
+          "imageData": "iVBORw0KGgoAAAANSUhEUgAAABQAAAAUCAYAAACNiR0NAAAACXBIWXMAAA7EAAAOxAGVKw4bAAAAV0lEQVQ4jWNhoDJgGTWQYsBCuRGoYCQbGN+0eT+IZvzPcHBBvW8DiJ3QuLnhPyODPbIGXPIL63wdaevChVAbkAHMJbgANnkWKjoODEYNpBywUMGMIWYgAM7EF9aVp8NeAAAAAElFTkSuQmCC",
+          "contentType": "image/png",
+          "groupId": "0",
+          "height": 20,
+          "width": 20,
+          "values": [
+            "3"
+          ]
+        }
+      ],
+      "legendGroups": [
+        {
+          "id": "0",
+          "heading": ""
+        }
+      ]
+    },
+    {
+      "layerId": 2,
+      "layerName": "Groundwater Salinity 2017",
+      "layerType": "Feature Layer",
+      "minScale": 0,
+      "maxScale": 0,
+      "legend": [
+        {
+          "label": "< 500                       Fresh (WHO Standard)",
+          "url": "da745bf5d25b896f8348447136b75c63",
+          "imageData": "iVBORw0KGgoAAAANSUhEUgAAABQAAAAUCAYAAACNiR0NAAAACXBIWXMAAA7EAAAOxAGVKw4bAAAAS0lEQVQ4jWNh8FnuwMDE4MBADfCP4QAL2LD/jPVUMZDpPwMLA5UBy6iBFAMWyo1ABaMGUg5YqGAGChg1cGSE4T+GA6CSlirgH8MBANIqCsN7NNhDAAAAAElFTkSuQmCC",
+          "contentType": "image/png",
+          "groupId": "0",
+          "height": 20,
+          "width": 20,
+          "values": [
+            "1"
+          ]
+        },
+        {
+          "label": "500 - <1,000            Fresh (Abu Dhabi Standard)",
+          "url": "8c81588c1c9aeafa6153bd7390d27907",
+          "imageData": "iVBORw0KGgoAAAANSUhEUgAAABQAAAAUCAYAAACNiR0NAAAACXBIWXMAAA7EAAAOxAGVKw4bAAAAPklEQVQ4jWNhKPjvwMDAAMLUAAdYoIbVU8lABpCBVAUsowZSDFgoNwIVjBpIOWChghkoYNTAkRKGB6ho3gEAe7oFP0FgnzEAAAAASUVORK5CYII=",
+          "contentType": "image/png",
+          "groupId": "0",
+          "height": 20,
+          "width": 20,
+          "values": [
+            "2"
+          ]
+        },
+        {
+          "label": "1,000 - <1,500         Fresh",
+          "url": "9c6a29717d8e5bb5b3e7f51f04902e1c",
+          "imageData": "iVBORw0KGgoAAAANSUhEUgAAABQAAAAUCAYAAACNiR0NAAAACXBIWXMAAA7EAAAOxAGVKw4bAAAATElEQVQ4jWPJaN/t8I/hnwMDFQATA9MBFohhjPXUMPAfwz8GFgYqA5ZRAykGLJQbgQpGDaQcsFDBDBQwauCICEMmBqYDoJKWGgBkFgBnpg13LUw8jQAAAABJRU5ErkJggg==",
+          "contentType": "image/png",
+          "groupId": "0",
+          "height": 20,
+          "width": 20,
+          "values": [
+            "3"
+          ]
+        },
+        {
+          "label": "1,500 - <4,000         Slightly Brackish",
+          "url": "db24e125dd334b826e8a72f4a181360e",
+          "imageData": "iVBORw0KGgoAAAANSUhEUgAAABQAAAAUCAYAAACNiR0NAAAACXBIWXMAAA7EAAAOxAGVKw4bAAAASklEQVQ4je3UsREAIQwDwcOjwijq8y+KBlwZMITEdoavgA0USN9YnUknI8N1sNX4M7w2QSSnAsMpTtwVGE8JxlWBb2xo+HnalAzfPZIK9kuF9wUAAAAASUVORK5CYII=",
+          "contentType": "image/png",
+          "groupId": "0",
+          "height": 20,
+          "width": 20,
+          "values": [
+            "4"
+          ]
+        },
+        {
+          "label": "4,000 - <7,000         Medium Brackish",
+          "url": "b13343b6f866c326b2af53852d691afa",
+          "imageData": "iVBORw0KGgoAAAANSUhEUgAAABQAAAAUCAYAAACNiR0NAAAACXBIWXMAAA7EAAAOxAGVKw4bAAAASklEQVQ4je3UsRHAIBADwYNRYXTm0kw37gI8HxK/Mv4K2ECB9H57LBgY6jAVWGs8DnBtEOZUYDrlibMC88lgHBV4xYYdZjyto7B+ZrAMc0U376AAAAAASUVORK5CYII=",
+          "contentType": "image/png",
+          "groupId": "0",
+          "height": 20,
+          "width": 20,
+          "values": [
+            "5"
+          ]
+        },
+        {
+          "label": "7,000 - <10,000       Strongly Brackish",
+          "url": "4d5aeffadb6e54fb460e5d12d2cb6237",
+          "imageData": "iVBORw0KGgoAAAANSUhEUgAAABQAAAAUCAYAAACNiR0NAAAACXBIWXMAAA7EAAAOxAGVKw4bAAAASklEQVQ4je3UMREAIAxD0dCLMJwhDdzgonAcE3Oz0S/gDRnCuXo1eIUghw1erDQFaHAQ4phgOMaJtwTjUWA8JfjFhg4b52kVHWsD0g0Nduxc/4kAAAAASUVORK5CYII=",
+          "contentType": "image/png",
+          "groupId": "0",
+          "height": 20,
+          "width": 20,
+          "values": [
+            "6"
+          ]
+        },
+        {
+          "label": "10,000 - <25,000     Slightly Saline",
+          "url": "0caebd125b83f7dc7ed221f1a24b3303",
+          "imageData": "iVBORw0KGgoAAAANSUhEUgAAABQAAAAUCAYAAACNiR0NAAAACXBIWXMAAA7EAAAOxAGVKw4bAAAAS0lEQVQ4jWO5fjzCgYnhnwMDFcA/BqYDLFDD6qlhIBPDPwYWBioDllEDKQYslBuBCkYNpBywUMEMFDBq4IgIw38MTAdAJS01AMgsAHoeDMZPw2fxAAAAAElFTkSuQmCC",
+          "contentType": "image/png",
+          "groupId": "0",
+          "height": 20,
+          "width": 20,
+          "values": [
+            "7"
+          ]
+        },
+        {
+          "label": "25,000 - <50,000     Saline",
+          "url": "d127cceee08a9aa11d513b6f71086c1e",
+          "imageData": "iVBORw0KGgoAAAANSUhEUgAAABQAAAAUCAYAAACNiR0NAAAACXBIWXMAAA7EAAAOxAGVKw4bAAAATUlEQVQ4je3UoRHAMAxDUcWnwQICslVW8xbdxu0ZBlus/gM8ICA+a88ITAgygzOxgfcowIgBQhwbLMc6cddgPQqMqwZ/saEZPJ9WUVofqAgOMUz29SIAAAAASUVORK5CYII=",
+          "contentType": "image/png",
+          "groupId": "0",
+          "height": 20,
+          "width": 20,
+          "values": [
+            "8"
+          ]
+        }
+      ],
+      "legendGroups": [
+        {
+          "id": "0",
+          "heading": ""
+        }
+      ]
+    },
+    {
+      "layerId": 3,
+      "layerName": "Waterlevel Change 2005 to 2017",
+      "layerType": "Feature Layer",
+      "minScale": 0,
+      "maxScale": 0,
+      "legend": [
+        {
+          "label": "Area with exceptional Water Level Rise (between 1.5 to 5m)",
+          "url": "da745bf5d25b896f8348447136b75c63",
+          "imageData": "iVBORw0KGgoAAAANSUhEUgAAABQAAAAUCAYAAACNiR0NAAAACXBIWXMAAA7EAAAOxAGVKw4bAAAAS0lEQVQ4jWNh8FnuwMDE4MBADfCP4QAL2LD/jPVUMZDpPwMLA5UBy6iBFAMWyo1ABaMGUg5YqGAGChg1cGSE4T+GA6CSlirgH8MBANIqCsN7NNhDAAAAAElFTkSuQmCC",
+          "contentType": "image/png",
+          "groupId": "0",
+          "height": 20,
+          "width": 20,
+          "values": [
+            "1"
+          ]
+        },
+        {
+          "label": "Area with high Water Level Rise (between 1.0 to 1.5m)",
+          "url": "8c81588c1c9aeafa6153bd7390d27907",
+          "imageData": "iVBORw0KGgoAAAANSUhEUgAAABQAAAAUCAYAAACNiR0NAAAACXBIWXMAAA7EAAAOxAGVKw4bAAAAPklEQVQ4jWNhKPjvwMDAAMLUAAdYoIbVU8lABpCBVAUsowZSDFgoNwIVjBpIOWChghkoYNTAkRKGB6ho3gEAe7oFP0FgnzEAAAAASUVORK5CYII=",
+          "contentType": "image/png",
+          "groupId": "0",
+          "height": 20,
+          "width": 20,
+          "values": [
+            "2"
+          ]
+        },
+        {
+          "label": "Area with medium Water Level Rise (between 0.5 to 1m)",
+          "url": "d5e3c774e5fa36c54078932c69865b81",
+          "imageData": "iVBORw0KGgoAAAANSUhEUgAAABQAAAAUCAYAAACNiR0NAAAACXBIWXMAAA7EAAAOxAGVKw4bAAAASElEQVQ4je3UsQ3AMAwDwYfBwbyZVxOQvZTAQBrXYmf9AFewoHjeyWDiKAn92LKAA4Q5NVhOdeKswXoyGEcN3rFhEvtpLSXxAfi2CJREq/prAAAAAElFTkSuQmCC",
+          "contentType": "image/png",
+          "groupId": "0",
+          "height": 20,
+          "width": 20,
+          "values": [
+            "3"
+          ]
+        },
+        {
+          "label": "Area with slight Water Level Rise (between 0.2 to 0.5m)",
+          "url": "b13343b6f866c326b2af53852d691afa",
+          "imageData": "iVBORw0KGgoAAAANSUhEUgAAABQAAAAUCAYAAACNiR0NAAAACXBIWXMAAA7EAAAOxAGVKw4bAAAASklEQVQ4je3UsRHAIBADwYNRYXTm0kw37gI8HxK/Mv4K2ECB9H57LBgY6jAVWGs8DnBtEOZUYDrlibMC88lgHBV4xYYdZjyto7B+ZrAMc0U376AAAAAASUVORK5CYII=",
+          "contentType": "image/png",
+          "groupId": "0",
+          "height": 20,
+          "width": 20,
+          "values": [
+            "4"
+          ]
+        },
+        {
+          "label": "Area with Stable change (fluctuating by 0.2m)",
+          "url": "906bfb13e815f239204a4a3295c85383",
+          "imageData": "iVBORw0KGgoAAAANSUhEUgAAABQAAAAUCAYAAACNiR0NAAAACXBIWXMAAA7EAAAOxAGVKw4bAAAAQ0lEQVQ4jWOxWM7gwMAAxtQAB1jAhjEy1FPFuP8MDCADqQpYRg2kGLBQbgQqGDWQcsBCBTNQwKiBIyUMD4BKWiqBAwDu7AauPcRzwwAAAABJRU5ErkJggg==",
+          "contentType": "image/png",
+          "groupId": "0",
+          "height": 20,
+          "width": 20,
+          "values": [
+            "5"
+          ]
+        },
+        {
+          "label": "Area with medium Water Level Decline (between 0.5 to 0.2m)",
+          "url": "1df6421e9e34eda51266a692bdf87d45",
+          "imageData": "iVBORw0KGgoAAAANSUhEUgAAABQAAAAUCAYAAACNiR0NAAAACXBIWXMAAA7EAAAOxAGVKw4bAAAAQklEQVQ4jWP5/7/EgYGBAYSpAQ6wQAz7X08d8xgZQAZSFbCMGkgxYKHcCFQwaiDlgIUKZqCAUQNHShgeAJW0VAIHAN7wB0McsqMGAAAAAElFTkSuQmCC",
+          "contentType": "image/png",
+          "groupId": "0",
+          "height": 20,
+          "width": 20,
+          "values": [
+            "6"
+          ]
+        },
+        {
+          "label": "Area with medium Water Level Decline (between 1.0 to 0.5m)",
+          "url": "e95dc81149b3d51efcfae136adeed459",
+          "imageData": "iVBORw0KGgoAAAANSUhEUgAAABQAAAAUCAYAAACNiR0NAAAACXBIWXMAAA7EAAAOxAGVKw4bAAAASElEQVQ4je3UsRGAMAxD0R+fBstmDMQSnizkoEttdfgP8AoV0nMzWUwcBakPG1wWcIEwpwbLqU6cNVhPBuOowX9sGOT7tJaC3DDZCXkmkBefAAAAAElFTkSuQmCC",
+          "contentType": "image/png",
+          "groupId": "0",
+          "height": 20,
+          "width": 20,
+          "values": [
+            "7"
+          ]
+        },
+        {
+          "label": "Area with high Water Level Decline (between 1.5 to 1m) ",
+          "url": "0586db1c38978f50589bcbee7563e26f",
+          "imageData": "iVBORw0KGgoAAAANSUhEUgAAABQAAAAUCAYAAACNiR0NAAAACXBIWXMAAA7EAAAOxAGVKw4bAAAASElEQVQ4je3UsQ3AMAwDwYfBwTyE98lqmkwOnM612EU/wBUsqL2YDCaOktCHbR4LOECYU4PlVCfuGqwng3HV4D82TOI8raUkXjRlCSQ78035AAAAAElFTkSuQmCC",
+          "contentType": "image/png",
+          "groupId": "0",
+          "height": 20,
+          "width": 20,
+          "values": [
+            "8"
+          ]
+        },
+        {
+          "label": "Depleted areas (falling between 1.5 to 5.0 m)",
+          "url": "28c2bdecce8984a4302e4192f5a5d2b7",
+          "imageData": "iVBORw0KGgoAAAANSUhEUgAAABQAAAAUCAYAAACNiR0NAAAACXBIWXMAAA7EAAAOxAGVKw4bAAAAR0lEQVQ4je3UsQ0AIAwDwQd5MDZjNbZhC4RSUscd+QGucGFtGAcGhjosBdZgOsADCHMqMJ3yxFuB+WQwngr8YsMOK57WUVgXY/8ItscSImQAAAAASUVORK5CYII=",
+          "contentType": "image/png",
+          "groupId": "0",
+          "height": 20,
+          "width": 20,
+          "values": [
+            "9"
+          ]
+        }
+      ],
+      "legendGroups": [
+        {
+          "id": "0",
+          "heading": ""
+        }
+      ]
+    },
+    {
+      "layerId": 4,
+      "layerName": "Groundwater Salinity 2008",
+      "layerType": "Feature Layer",
+      "minScale": 0,
+      "maxScale": 0,
+      "legend": [
+        {
+          "label": "0 - 500 ppm Fresh",
+          "url": "da745bf5d25b896f8348447136b75c63",
+          "imageData": "iVBORw0KGgoAAAANSUhEUgAAABQAAAAUCAYAAACNiR0NAAAACXBIWXMAAA7EAAAOxAGVKw4bAAAAS0lEQVQ4jWNh8FnuwMDE4MBADfCP4QAL2LD/jPVUMZDpPwMLA5UBy6iBFAMWyo1ABaMGUg5YqGAGChg1cGSE4T+GA6CSlirgH8MBANIqCsN7NNhDAAAAAElFTkSuQmCC",
+          "contentType": "image/png",
+          "groupId": "0",
+          "height": 20,
+          "width": 20,
+          "values": [
+            "1"
+          ]
+        },
+        {
+          "label": "500 - 1000 ppm Fresh",
+          "url": "8c81588c1c9aeafa6153bd7390d27907",
+          "imageData": "iVBORw0KGgoAAAANSUhEUgAAABQAAAAUCAYAAACNiR0NAAAACXBIWXMAAA7EAAAOxAGVKw4bAAAAPklEQVQ4jWNhKPjvwMDAAMLUAAdYoIbVU8lABpCBVAUsowZSDFgoNwIVjBpIOWChghkoYNTAkRKGB6ho3gEAe7oFP0FgnzEAAAAASUVORK5CYII=",
+          "contentType": "image/png",
+          "groupId": "0",
+          "height": 20,
+          "width": 20,
+          "values": [
+            "2"
+          ]
+        },
+        {
+          "label": "1000 - 1500 ppm Fresh",
+          "url": "db24e125dd334b826e8a72f4a181360e",
+          "imageData": "iVBORw0KGgoAAAANSUhEUgAAABQAAAAUCAYAAACNiR0NAAAACXBIWXMAAA7EAAAOxAGVKw4bAAAASklEQVQ4je3UsREAIQwDwcOjwijq8y+KBlwZMITEdoavgA0USN9YnUknI8N1sNX4M7w2QSSnAsMpTtwVGE8JxlWBb2xo+HnalAzfPZIK9kuF9wUAAAAASUVORK5CYII=",
+          "contentType": "image/png",
+          "groupId": "0",
+          "height": 20,
+          "width": 20,
+          "values": [
+            "3"
+          ]
+        },
+        {
+          "label": "1500 - 4000 ppm Brackish",
+          "url": "4045be702656e0f2049702271eee34c9",
+          "imageData": "iVBORw0KGgoAAAANSUhEUgAAABQAAAAUCAYAAACNiR0NAAAACXBIWXMAAA7EAAAOxAGVKw4bAAAARklEQVQ4jWMpuf/fgYGBAYSpAQ6wgAz7z8BQTw3TGBkYGEAGUhWwjBpIMWCh3AhUMGog5YCFCmaggFEDR0oYHgCVtFQCBwAVnAcjQZy1SgAAAABJRU5ErkJggg==",
+          "contentType": "image/png",
+          "groupId": "0",
+          "height": 20,
+          "width": 20,
+          "values": [
+            "4"
+          ]
+        },
+        {
+          "label": "4000 - 7000 ppm Brackish",
+          "url": "4045be702656e0f2049702271eee34c9",
+          "imageData": "iVBORw0KGgoAAAANSUhEUgAAABQAAAAUCAYAAACNiR0NAAAACXBIWXMAAA7EAAAOxAGVKw4bAAAARklEQVQ4jWMpuf/fgYGBAYSpAQ6wgAz7z8BQTw3TGBkYGEAGUhWwjBpIMWCh3AhUMGog5YCFCmaggFEDR0oYHgCVtFQCBwAVnAcjQZy1SgAAAABJRU5ErkJggg==",
+          "contentType": "image/png",
+          "groupId": "0",
+          "height": 20,
+          "width": 20,
+          "values": [
+            "5"
+          ]
+        },
+        {
+          "label": "7000 - 10000 ppm Brackish",
+          "url": "b13343b6f866c326b2af53852d691afa",
+          "imageData": "iVBORw0KGgoAAAANSUhEUgAAABQAAAAUCAYAAACNiR0NAAAACXBIWXMAAA7EAAAOxAGVKw4bAAAASklEQVQ4je3UsRHAIBADwYNRYXTm0kw37gI8HxK/Mv4K2ECB9H57LBgY6jAVWGs8DnBtEOZUYDrlibMC88lgHBV4xYYdZjyto7B+ZrAMc0U376AAAAAASUVORK5CYII=",
+          "contentType": "image/png",
+          "groupId": "0",
+          "height": 20,
+          "width": 20,
+          "values": [
+            "6"
+          ]
+        },
+        {
+          "label": "10000 - 25000 ppm Saline",
+          "url": "7c6e2358d9dd17ef2e856c82542fe910",
+          "imageData": "iVBORw0KGgoAAAANSUhEUgAAABQAAAAUCAYAAACNiR0NAAAACXBIWXMAAA7EAAAOxAGVKw4bAAAASUlEQVQ4je3UoRHAMAxD0Z+cBstQ5V0tk8U9w2CL1X+ABwSkiGcdWBiasJXYIF4HeBgIc2qwnOrEXYP1ZDCuGvzFhhN2Pq2jtD4hGwtCs7CpAAAAAABJRU5ErkJggg==",
+          "contentType": "image/png",
+          "groupId": "0",
+          "height": 20,
+          "width": 20,
+          "values": [
+            "7"
+          ]
+        },
+        {
+          "label": "25000 - 50000 ppm Saline",
+          "url": "bab2f9afc7faf2c87ae5cc5e17611562",
+          "imageData": "iVBORw0KGgoAAAANSUhEUgAAABQAAAAUCAYAAACNiR0NAAAACXBIWXMAAA7EAAAOxAGVKw4bAAAAPUlEQVQ4jWP5/5/BgYEBjKkBDrBADaunkoEMIAOpClhGDaQYsFBuBCoYNZBywEIFM1DAqIEjJQwPUNG8AwAFwgXOXgdM7QAAAABJRU5ErkJggg==",
+          "contentType": "image/png",
+          "groupId": "0",
+          "height": 20,
+          "width": 20,
+          "values": [
+            "8"
+          ]
+        },
+        {
+          "label": "50000 - 100000 ppm Saline",
+          "url": "5eec91d0402cd88bac518e70194e209f",
+          "imageData": "iVBORw0KGgoAAAANSUhEUgAAABQAAAAUCAYAAACNiR0NAAAACXBIWXMAAA7EAAAOxAGVKw4bAAAAS0lEQVQ4je3UsRHAIBADwYNRYXTmMtwO3bgLYD4kfmX+K2ADBdL3MhYMDHWYCqw1Hge4NghzKjCd8sRdgflkMK4K/MWGHWY8raOwDh7wC0xUVS4uAAAAAElFTkSuQmCC",
+          "contentType": "image/png",
+          "groupId": "0",
+          "height": 20,
+          "width": 20,
+          "values": [
+            "9"
+          ]
+        },
+        {
+          "label": "100000 - 125000 ppm Brine",
+          "url": "314deeb058f4f8fdeafe9db8757fabde",
+          "imageData": "iVBORw0KGgoAAAANSUhEUgAAABQAAAAUCAYAAACNiR0NAAAACXBIWXMAAA7EAAAOxAGVKw4bAAAATElEQVQ4je3UMREAIAxD0dCLEKQgAUdYwxN7j+vI3Gz0C3hDhvDMPtwxIMgMm4E1YClAd4AQxwLTMU+8FZiPAuOpwC82NMOOp1UU1gWr8A0wOHP1ewAAAABJRU5ErkJggg==",
+          "contentType": "image/png",
+          "groupId": "0",
+          "height": 20,
+          "width": 20,
+          "values": [
+            "10"
+          ]
+        },
+        {
+          "label": "125000 - 160000 ppm Brine",
+          "url": "b4db362aafcefb11b7f3ded1da19a492",
+          "imageData": "iVBORw0KGgoAAAANSUhEUgAAABQAAAAUCAYAAACNiR0NAAAACXBIWXMAAA7EAAAOxAGVKw4bAAAATUlEQVQ4jWN5LSBh/4/pnwMDFQDTP6YDLGDD/jPUUcPAf0z/GFgYqAxYRg2kGLBQbgQqGDWQcsBCBTNQwKiBIyIMmf4xHQCVtNQAILMAA58Q3oRNSsgAAAAASUVORK5CYII=",
+          "contentType": "image/png",
+          "groupId": "0",
+          "height": 20,
+          "width": 20,
+          "values": [
+            "11"
+          ]
+        }
+      ],
+      "legendGroups": [
+        {
+          "id": "0",
+          "heading": ""
+        }
+      ]
+    },
+    {
+      "layerId": 5,
+      "layerName": "Groundwater Depleted Area",
+      "layerType": "Feature Layer",
+      "minScale": 0,
+      "maxScale": 0,
+      "legend": [
+        {
+          "label": "",
+          "url": "3fbe4dcc133e3aba993d94e7a6164acd",
+          "imageData": "iVBORw0KGgoAAAANSUhEUgAAABQAAAAUCAYAAACNiR0NAAAACXBIWXMAAA7EAAAOxAGVKw4bAAAAu0lEQVQ4ja3VMQrCQBCF4X9l6lRpghcQLD3L3kWsLL1LzmJvFbBxGysvsDIhEULMKuS9ZpvHt1MMu/aAU4CKQjLsAtx+dGqgM8caOC4VE8QA1wbapc4d9gZxA5WVbnXMz3+wLZwTXEyFMcSU2FdwDTYD12ITUIF9QBXmMV/IIMIy1P2ECixBzD5hgKcCA3DLVFgDbYKDqTCGmBKbgWuxCajAGEEV1oPDMkqwccLOX1p/HEvF8Rvw1Sh0Xm+t8FuMSgIG+wAAAABJRU5ErkJggg==",
+          "contentType": "image/png",
+          "groupId": "0",
+          "height": 20,
+          "width": 20
+        }
+      ],
+      "legendGroups": [
+        {
+          "id": "0",
+          "heading": ""
+        }
+      ]
+    }
+  ]
+}
