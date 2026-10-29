@@ -4,15 +4,13 @@ The Unity dashboard and the Guardian worker are separate components. Unity stays
 
 ## What was implemented
 
-| Report scope | Implemented behaviour | Where to use it |
+| Feature area | Implemented behaviour | Where to use it |
 |---|---|---|
-| 03 / A: early warning | Minute medians, Theil-Sen depth/TDS rates, change from baseline, residual anomaly score, evidence window/count, review reasons, optional same-aquifer nearby-well correlation and response after a configured pumping pause | Select a well -> Insights -> Evidence |
-| 04 / B: Time Machine | Bounded linear projections, heuristic uncertainty band, critical-depth and TDS-review crossing estimates, chronological holdout errors, historical/forecast chart, timeline and orange ghost column | Insights -> Time machine -> View twin |
-| 05 / C: intervention | Enter flow, runtime, reduction, start day and recharge assumptions; compare abstraction and avoided volume; optionally enter effective area and specific yield for a hypothetical head response and sensitivity band; persist and compare scenarios | Insights -> What-if -> Calculate & save -> View twin |
-| 06 / D: spatial layers | Water-column/head pattern, estimated-TDS pattern with coverage fading, hypothetical pumping footprint, and a separate historical EAD map with years and source legend | Main layer selector; Insights -> Abu Dhabi context |
+| Early warning | Minute medians, Theil-Sen depth/TDS rates, change from baseline, residual anomaly score, evidence window/count, review reasons, optional same-aquifer nearby-well correlation and response after a configured pumping pause | Select a well -> Insights -> Evidence |
+| Time Machine | Bounded linear projections, heuristic uncertainty band, critical-depth and TDS-review crossing estimates, chronological holdout errors, historical/forecast chart, timeline and orange ghost column | Insights -> Time machine -> View twin |
+| Intervention | Enter flow, runtime, reduction, start day and recharge assumptions; compare abstraction and avoided volume; optionally enter effective area and specific yield for a hypothetical head response and sensitivity band; persist and compare scenarios | Insights -> What-if -> Calculate & save -> View twin |
+| Spatial layers | Water-column/head pattern, estimated-TDS pattern with coverage fading, hypothetical pumping footprint, and a separate historical EAD map with years and source legend | Main layer selector; Insights -> Abu Dhabi context |
 | Supporting architecture | SQLite raw events/minute aggregates/insight runs/scenario runs; deduplication; source/freshness flags; versioned retained insight messages; non-retained scenario request/reply; CSV export and safe SQLite backup | Guardian worker / CLI |
-
-Excluded as requested: section 07 irrigation allocation/well ranking; section 08 advanced sensor-reliability scoring, AI narrator/investigator; section 09 sensor-placement adviser. Basic existing validation/freshness and the anomaly check required by feature A remain in place. No LLM or paid AI API is required.
 
 ## Unity startup and interface changes
 
@@ -179,5 +177,3 @@ See `CONTRACTS.md` for MQTT fields, persistence and units. Historical map catalo
 
 - <https://edp.ead.ae/server/rest/services/Enviroportal/Groundwater/MapServer>
 - <https://edp.ead.ae/server/rest/services/Enviroportal/Groundwater/MapServer/legend?f=pjson>
-
-The feature scope follows *AquaTwin Guardian Technical Report*, 25 October 2026, sections 03–06. Excluded sections are not silently presented as implemented.

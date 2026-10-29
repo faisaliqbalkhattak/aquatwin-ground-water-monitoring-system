@@ -23,7 +23,6 @@ This project aligns with UN SDG 6 (Clean Water and Sanitation)—focusing on Tar
 │   └── README.md
 ├── cloud/                   # MQTT broker setup and telemetry contract
 │   └── README.md
-├── cloud_monitor/           # Optional Python MQTT terminal monitor
 ├── guardian/                # Optional durable history and decision-support service
 ├── demos-and-presentations/ # Demonstration video and presentation
 ├── unity/                   # Unity digital twin project
@@ -42,7 +41,7 @@ This project aligns with UN SDG 6 (Clean Water and Sanitation)—focusing on Tar
 - **Firmware:** Arduino framework for ESP32, C++, NTP time synchronisation
 - **Messaging:** MQTT over TLS using HiveMQ Cloud
 - **Digital twin:** Unity 6 and C#
-- **Cloud monitor:** Python 3, Paho MQTT, python-dotenv, and pytest
+- **Backend services:** Python 3, Paho MQTT, and SQLite
 - **Decision support:** Python, SQLite, and the optional Guardian service
 - **Simulation:** Wokwi-compatible ESP32-S3 circuit and sensor simulation
 
@@ -78,7 +77,7 @@ ESP32-S3 sensors
         ↓
 HiveMQ Cloud (MQTT TLS, port 8883)
         ↓
-Unity Digital Twin / cloud monitor
+Unity Digital Twin
         ↓
 3D visualization: water level, TDS colour, and dashboard state
 ```
@@ -124,8 +123,8 @@ See [`firmware/README.md`](firmware/README.md).
 
 ### 2. Cloud Broker
 
-See [`cloud/README.md`](cloud/README.md) for HiveMQ Cloud setup, broker config, the
-frozen telemetry contract, and the cloud monitor commands.
+See [`cloud/README.md`](cloud/README.md) for HiveMQ Cloud setup, broker
+configuration, and the telemetry contract.
 
 ### 3. Unity Digital Twin
 
@@ -137,21 +136,11 @@ See [`unity/README.md`](unity/README.md).
 3. Unity subscribes to HiveMQ through its configured secure WebSocket connection;
    local credentials are stored outside Git and must never be committed.
 
-### 4. Cloud monitor and Guardian service
+### 4. Guardian service
 
-The optional `cloud_monitor` package provides a terminal view of validated
-telemetry. The optional [Guardian service](guardian/README.md) adds durable
-history and decision-support features. Both can be run independently of the
-Unity offline demo.
-
-To run the cloud monitor:
-
-```bash
-python -m cloud_monitor --env-file .env
-```
-
-Create `.env` locally from `.env.example` and provide broker credentials only
-when using live telemetry. The offline Unity demo does not require `.env`.
+The optional [Guardian service](guardian/README.md) adds durable history and
+decision-support features. It can be run independently of the Unity offline
+demo.
 
 ---
 

@@ -15,7 +15,7 @@
 
 ## Still required on the deployment machine
 
-The user elected to review the Unity interface later. The Editor process had no visible window during this validation, so the new layout, preview rendering, Play/Stop lifecycle and pointer interactions were not visually verified in Unity. Open SampleScene, run the AquaTwin validation menus, then check Play -> demo -> Insights -> Time machine -> What-if -> Stop -> Play.
+The Editor process had no visible window during this validation, so the new layout, preview rendering, Play/Stop lifecycle and pointer interactions were not visually verified in Unity. Open SampleScene, run the AquaTwin validation menus, then check Play -> demo -> Insights -> Time machine -> What-if -> Stop -> Play.
 
 No full WebGL player build, fresh deployment to Hostinger, live Guardian worker/publisher integration, broker permission changes or production endurance test was performed for this update. These are not claimed by the source/compiler checks. Test live discovery and a Guardian round trip with a running sensor and worker before replacing the public build.
 
@@ -25,7 +25,7 @@ The service must collect sufficient valid history before forecasting. Empty/insu
 
 Unity became available. Verified the modern Edit Mode preview, Play Mode, restored last-known wells, ten-well animated demo, Evidence drawer, Time Machine chart/ghost projection, and What-if inputs/calculation (25.2 m³ avoided over seven days). Corrected render-texture detach-before-release, a static Reset method name colliding with Unity's Editor callback, summary compression and drawer/slider spacing. Recompiled successfully. Console showed zero errors/warnings after the fixes. Stopped Play Mode and confirmed the modern preview returns.
 
-Live MQTT authenticated, but WELL_WOKWI_01 reported an out-of-order source timestamp and no fresh live readings were verified. This check does not validate current publisher clock/data or a live Guardian worker. Earlier visual-check deferral above is superseded by this follow-up; full WebGL build/deployment remains outstanding.
+Live MQTT authenticated, but WELL_WOKWI_01 reported an out-of-order source timestamp and no fresh live readings were verified. This check does not validate current publisher clock/data or a live Guardian worker. Full WebGL build/deployment remains outstanding.
 
 ## Twin focus and Editor startup follow-up
 

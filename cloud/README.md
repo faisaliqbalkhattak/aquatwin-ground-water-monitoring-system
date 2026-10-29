@@ -1,16 +1,15 @@
 # AquaTwin Cloud Architecture and Setup
 
-AquaTwin uses HiveMQ Cloud only as the secure telemetry broker. There is no
-separate backend: the Unity dashboard and the `cloud_monitor` terminal tool are
-the downstream MQTT consumers, and Unity renders its own visualization directly
-from the broker.
+AquaTwin uses HiveMQ Cloud as the secure telemetry broker. Unity renders the
+live visualization directly from the broker, while the optional Guardian
+worker stores history and publishes decision-support insights.
 
 ```text
 ESP32 / Wokwi nodes
   -> MQTT TLS 8883
   -> HiveMQ Cloud: aquatwin/well/{well_id}/telemetry
-  -> Unity dashboard over secure WebSocket 8884 (own UI)
-  -> cloud_monitor terminal monitor (subscriber) via cloud_monitor/
+  -> Unity dashboard over secure WebSocket 8884
+  -> Guardian worker over MQTT/TLS 8883
 ```
 
 ## Frozen contract
@@ -20,8 +19,8 @@ ESP32 / Wokwi nodes
 - Publish topic: `aquatwin/well/{well_id}/telemetry`
 - Subscription topic filter: `aquatwin/well/+/telemetry`
 
-The payload `well_id` must match the topic's `{well_id}` segment. Firmware, the
-Unity dashboard and the cloud monitor all use this one contract:
+The payload `well_id` must match the topic's `{well_id}` segment. Firmware,
+Unity, and Guardian use this contract:
 
 ```json
 {
@@ -42,25 +41,14 @@ Replace `timestamp` with the current Unix time in seconds when publishing.
 1. In HiveMQ Cloud **Access Management**, create one credential for the
    ESP32/Wokwi publisher with permission to publish to
    `aquatwin/well/{well_id}/telemetry`.
-2. Create a second credential for subscribers (Unity dashboard and
-   `cloud_monitor`) with permission to subscribe to `aquatwin/well/+/telemetry`.
+2. Create a second credential for subscribers (Unity dashboard and Guardian)
+   with permission to subscribe to `aquatwin/well/+/telemetry`.
 3. Give every physical or simulated node its own unique well identity. Each
    topic segment must match the payload's `well_id`; publishing every node as
    the same identity still represents one well.
 
-Copy `.env.example` to `.env` and fill in the private values locally:
-
-```dotenv
-MQTT_HOST=<cluster-id>.s1.eu.hivemq.cloud
-MQTT_PORT=8883
-MQTT_USERNAME=<private username>
-MQTT_PASSWORD=<private password>
-MQTT_TOPIC=aquatwin/well/+/telemetry
-```
-
-Credentials stay out of Git: passwords live in `.env` (monitor) and in local
-sketch edits (firmware). Never put real passwords in source, documentation,
-screenshots, commits, or chat.
+Keep broker credentials in local configuration and sketch edits. Never put real
+passwords in source, documentation, screenshots, commits, or chat.
 
 ## Data pipeline roles
 
@@ -73,26 +61,16 @@ screenshots, commits, or chat.
   and renders the 3D digital twin. Open the gear > SETTINGS dialog in Play
   Mode and enter the subscriber credentials saved from Access Management.
   Unity never needs a separate backend or API; see `unity/README.md`.
-- `cloud_monitor/`: validates every payload (`telemetry.py`), keeps
-  thread-safe monitoring state (`state.py`) and renders a terminal dashboard
-  (`dashboard.py`). The monitor uses the operating system CA store, requires a
-  valid certificate, verifies the hostname, and enforces TLS 1.2 or newer.
-
-## Run the cloud monitor
-
-```bash
-cp .env.example .env        # fill in MQTT_HOST, MQTT_USERNAME, MQTT_PASSWORD
-python -m cloud_monitor --env-file .env
-```
-
-A terminal dashboard prints live readings and turns stale after the configured
-`MQTT_STALE_TIMEOUT` seconds without a valid message.
+- `guardian/`: subscribes to telemetry, stores validated history in SQLite,
+  calculates insights, and publishes analysis and scenario responses. See
+  `guardian/README.md`.
 
 ## Automated tests
 
 ```bash
-python -m pytest -q
+cd guardian
+python -m unittest discover -s tests -v
 ```
 
 Tests do not require the broker. The real HiveMQ round-trip (firmware to Unity
-and the monitor) is a separate integration check.
+and Guardian) is a separate integration check.
