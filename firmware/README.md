@@ -19,11 +19,12 @@ The full production code. Connects to Wi-Fi and publishes sensor readings to Hiv
 | `AQUATWIN_MQTT_USERNAME` | HiveMQ Cloud MQTT username |
 | `AQUATWIN_MQTT_PASSWORD` | HiveMQ Cloud MQTT password |
 
-The production sketch synchronizes its clock with NTP and verifies HiveMQ's TLS
-certificate against the included ISRG Root X1 CA. It deliberately refuses to
-fall back to an insecure connection when time synchronization fails.
+The production sketch synchronizes its clock with NTP and refuses to publish
+until it has a valid UTC timestamp. MQTT transport is configured for TLS on
+port 8883. Certificate verification and deployment credentials must be
+configured before field deployment.
 
-**MQTT topic:** `digitaltwin/well01/sensors`
+**MQTT topic:** `aquatwin/well/{well_id}/telemetry`
 
 **Payload format:**
 ```json
@@ -38,7 +39,7 @@ fall back to an insecure connection when time synchronization fails.
 }
 ```
 
-Publishes every 2 seconds. The Wokwi well is configured as 500 cm total depth,
+Publishes every 3 seconds. The Wokwi well is configured as 500 cm total depth,
 so `water_column_height_cm = 500 - depth_to_water_cm` (clamped at zero).
 
 ---
@@ -62,7 +63,7 @@ Standalone test for the HC-SR04. Prints distance in cm and inches to Serial. Use
 
 ### `tds_test_code.ino` — TDS Sensor Test
 
-Standalone test for the TDS probe on GPIO 1. Prints raw ADC value and converted voltage.
+Standalone test for the TDS probe on GPIO 3. Prints raw ADC value and converted voltage.
 
 ---
 

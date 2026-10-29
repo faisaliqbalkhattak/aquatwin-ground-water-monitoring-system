@@ -26,8 +26,8 @@ Open this file directly in the [Wokwi Simulator](https://wokwi.com/) to run the 
 
 ## Wire Colors (convention used in the diagram)
 
-- **Red** — 5V / 3.3V power
+- **Red** — 3.3V power
 - **Black** — Ground
-- **Green** — Data out (TRIG)
-- **Yellow** — Data in (ECHO)
-- **Blue** — Analog signal (TDS)
+- **Blue** — Data out (TRIG)
+- **Purple** — Data in (ECHO)
+- **Yellow** — Analog signal (TDS)
